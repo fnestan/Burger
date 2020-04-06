@@ -24,6 +24,39 @@ export class AdminMiddleware {
         };
     }
 
+    static canTakeChargeOfOrder() {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            const authorization = req.headers['authorization'].split(" ")[1];
+            const user = await userFromToken(authorization);
+            if (!user) {
+                res.status(403).end();
+                return;
+            }
+            console.log(user);
+            if (user.role.id !== RoleTypes.OrderPicker && user.role.id !== RoleTypes.Admin) {
+                res.status(403).end();
+                return;
+            }
+            next();
+        }
+    }
+    static isOrderPicker(){
+        return async function (req: Request, res: Response, next: NextFunction) {
+            const authorization = req.headers['authorization'].split(" ")[1];
+            const user = await userFromToken(authorization);
+            if (!user) {
+                res.status(403).end();
+                return;
+            }
+            console.log(user);
+            if (user.role.id !== RoleTypes.OrderPicker) {
+                res.status(403).end();
+                return;
+            }
+            next();
+        };
+    }
+
     static isLogged() {
         return async (req: Request, res: Response, next: NextFunction) => {
             const authorization = req.headers['authorization'];
