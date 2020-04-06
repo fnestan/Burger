@@ -10,6 +10,7 @@ import recipes from './recipe.route';
 import menus from './menu.route';
 import discounts from './discount.route';
 import orders from './order.route';
+import forwards from './forward.route';
 
 const routes = Router();
 
@@ -24,5 +25,6 @@ routes.use("/recipes", recipes);
 routes.use("/menus", menus);
 routes.use("/discounts", discounts);
 routes.use("/orders", orders);
+routes.use("/forwards", forwards);
 
 export default routes;

@@ -25,10 +25,6 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
 });
 
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    if (+req.body.menuId && +req.body.productLineId) {
-        res.status(400).json("Vous ne pouvez pas appliquer une promotion sur un menu et un produit")
-        return;
-    }
     const discount = await DiscountController.updateDiscount(+req.params.id, +req.body.discountPrice);
     if ((discount as IError).Code) {
         res.status((discount as IError).Code).json((discount as IError).Message);
