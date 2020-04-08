@@ -5,15 +5,16 @@ import bodyParser from "body-parser";
 import {IError} from "../interfaces/IError";
 import {ISuccess} from "../interfaces/ISuccess";
 import {AdminMiddleware} from "../middlewares/AdminMiddleware";
-import {userFromToken} from "../helpers/userHelper";
+import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 import {RoleTypes} from "../enums/RoleTypes";
+import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
 
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
     let isAdmin = false;
     if (req.headers["authorization"]) {
-        const token = req.headers["authorization"].split(" ")[1];
+        const token = tokentSpit(req.headers["authorization"]);
         const userFound = await userFromToken(token);
         if (userFound && userFound.role.id === RoleTypes.Admin) {
             isAdmin = true;
@@ -24,22 +25,16 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
+    VerificationHelper.allRequiredParam(req.body.label);
     const refTypes = await TypesController.createRefTypeProduct(req.body.label);
-    if ((refTypes as IError).Code) {
-        res.status((refTypes as IError).Code).json((refTypes as IError).Message);
-    } else {
-        res.status(201).json(refTypes)
-    }
-
+    res.status(201).json(refTypes);
 });
 
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
+    VerificationHelper.allRequiredParam(req.body.label);
+    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "RefTypeProduct");
     const refTypes = await TypesController.updateRefTypeProduct(+req.params.id, req.body.label);
-    if ((refTypes as IError).Code) {
-        res.status((refTypes as IError).Code).json((refTypes as IError).Message);
-    } else {
-        res.status(200).json(refTypes)
-    }
+    res.status(200).json(refTypes)
 });
 
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {

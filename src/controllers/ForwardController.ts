@@ -5,6 +5,7 @@ import {ProductLine} from "../entities/ProductLine";
 import {IError} from "../interfaces/IError";
 import {ISuccess} from "../interfaces/ISuccess";
 import {Forward} from "../entities/Forward";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 
 export class ForwardController {
@@ -33,23 +34,16 @@ export class ForwardController {
         return await getRepository(Forward).save(forward);
     }
 
-    static async updateForward(id: number, description: string): Promise<Forward | IError> {
-        try {
-            const forwardUpdate = {
-                id: id,
-                description: description
-            };
-            const resForward = await getRepository(Forward).preload(forwardUpdate);
-            return await getRepository(Forward).save(resForward);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+    static async updateForward(id: number, description: string): Promise<Forward> {
+        const forwardUpdate = {
+            id: id,
+            description: description
+        };
+        const resForward = await getRepository(Forward).preload(forwardUpdate);
+        return await getRepository(Forward).save(resForward);
     }
 
-    static async deleteForward(id: number): Promise<ISuccess | IError> {
+    static async deleteForward(id: number): Promise<IMessageResponse> {
         try {
             const forward = await getRepository(Forward).delete(id);
             return {

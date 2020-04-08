@@ -4,33 +4,19 @@ import {ISuccess} from "../interfaces/ISuccess";
 import {IError} from "../interfaces/IError";
 import {Product} from "../entities/Product";
 import {ProductLine} from "../entities/ProductLine";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 
 export class ProductController {
 
 
-    static async createProduct(name: string, typeId: number): Promise<Product | IError> {
+    static async createProduct(name: string, typeId: number): Promise<Product> {
         const type: RefTypeProduct = await getRepository(RefTypeProduct).findOne(typeId);
-        if (!type) {
-            return {
-                Code: 400,
-                Message: "Le type n'existe pas"
-            }
-        }
-        try {
-            const product: Product = await getRepository(Product).create({
-                name: name,
-                type: type
-            });
-
-            return await getRepository(Product).save(product);
-
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+        const product: Product = await getRepository(Product).create({
+            name: name,
+            type: type
+        });
+        return await getRepository(Product).save(product);
     }
 
     static async updateProduct(id: number, name: string, typeId: number): Promise<Product | IError> {
@@ -57,7 +43,7 @@ export class ProductController {
         }
     }
 
-    static async deleteProduct(id: number): Promise<ISuccess | IError> {
+    static async deleteProduct(id: number): Promise<IMessageResponse> {
         try {
             const product = await getRepository(Product).delete(id);
             return {

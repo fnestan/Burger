@@ -5,10 +5,10 @@ import bodyParser from "body-parser";
 import {IError} from "../interfaces/IError";
 import {ISuccess} from "../interfaces/ISuccess";
 import {AdminMiddleware} from "../middlewares/AdminMiddleware";
-import {userFromToken} from "../helpers/userHelper";
 import {RoleTypes} from "../enums/RoleTypes";
 import {Menu} from "../entities/Menu";
 import {MenuController} from "../controllers/MenuController";
+import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 
 const router = Router();
 

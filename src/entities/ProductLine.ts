@@ -17,6 +17,6 @@ export class ProductLine {
     @Column()
     orderable: boolean;
 
-    @ManyToOne(type => Product, product => product.productLines, {onDelete: 'CASCADE'})
+    @ManyToOne(type => Product, product => product.productLines, {eager: true, onDelete: 'CASCADE', lazy: true})
     product: Product;
 }

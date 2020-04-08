@@ -1,5 +1,5 @@
 import {AuthController} from "../controllers/AuthController";
-import {userFromToken} from "../helpers/userHelper"
+import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 import {Request, Response, NextFunction} from "express";
 import {RoleTypes} from "../enums/RoleTypes";
 import jsonwebtoken from "jsonwebtoken";
@@ -40,7 +40,8 @@ export class AdminMiddleware {
             next();
         }
     }
-    static isOrderPicker(){
+
+    static isOrderPicker() {
         return async function (req: Request, res: Response, next: NextFunction) {
             const authorization = req.headers['authorization'].split(" ")[1];
             const user = await userFromToken(authorization);

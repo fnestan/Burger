@@ -5,8 +5,8 @@ import {IError} from "../interfaces/IError";
 
 export class TypesController {
     static async getAllRefTypeProduct(isAdmin: boolean): Promise<RefTypeProduct[]> {
-        if (isAdmin){
-            return  await getRepository(RefTypeProduct).find();
+        if (isAdmin) {
+            return await getRepository(RefTypeProduct).find();
         }
         const refTypeProducts = await getRepository(RefTypeProduct).find({
             relations: ["products"],
@@ -17,25 +17,18 @@ export class TypesController {
         return refTypeProducts
     }
 
-    static async createRefTypeProduct(label: string): Promise<RefTypeProduct | IError> {
-        try {
-            const ref: RefTypeProduct = await getRepository(RefTypeProduct).create({
-                label: label
-            });
+    static async createRefTypeProduct(label: string): Promise<RefTypeProduct> {
+        const ref: RefTypeProduct = await getRepository(RefTypeProduct).create({
+            label: label
+        });
 
-            return await getRepository(RefTypeProduct).save(ref);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+        return await getRepository(RefTypeProduct).save(ref);
     }
 
     static async updateRefTypeProduct(id: number, label: string): Promise<RefTypeProduct | IError> {
         try {
-            const ref ={
-                id:id,
+            const ref = {
+                id: id,
                 label: label
             };
             const resRef = await getRepository(RefTypeProduct).preload(ref)

@@ -5,23 +5,15 @@ import {Ingredient} from "../entities/Ingredient";
 
 export class IngredientController {
 
-    static async getAllIngredients(): Promise<Ingredient[]>{
+    static async getAllIngredients(): Promise<Ingredient[]> {
         return await getRepository(Ingredient).find();
     }
 
-    static async createIngredient(name: string): Promise<Ingredient | IError> {
-        try {
-            const ingredient: Ingredient = await getRepository(Ingredient).create({
-                name: name
-            });
-
-            return await getRepository(Ingredient).save(ingredient);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+    static async createIngredient(name: string): Promise<Ingredient> {
+        const ingredient: Ingredient = await getRepository(Ingredient).create({
+            name: name
+        });
+        return await getRepository(Ingredient).save(ingredient);
     }
 
     static async updateIngredient(id: number, name: string): Promise<Ingredient | IError> {

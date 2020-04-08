@@ -6,23 +6,15 @@ import {Ingredient} from "../entities/Ingredient";
 
 export class UnitController {
 
-    static async getAllUnits() : Promise<Unit[]>{
+    static async getAllUnits(): Promise<Unit[]> {
         return await getRepository(Unit).find();
     }
 
-    static async createUnit(name: string): Promise<Unit | IError> {
-        try {
-            const unit: Unit = await getRepository(Unit).create({
-                name: name
-            });
-
-            return await getRepository(Unit).save(unit);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+    static async createUnit(name: string): Promise<Unit> {
+        const unit: Unit = await getRepository(Unit).create({
+            name: name
+        });
+        return await getRepository(Unit).save(unit);
     }
 
     static async updateUnit(id: number, name: string): Promise<Unit | IError> {

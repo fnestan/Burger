@@ -4,16 +4,9 @@ import {getRepository} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
 import {Discount} from "../entities/Discount";
 import {User} from "../entities/User";
-import {userFromToken} from "../helpers/userHelper";
+import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 
 export class OrderController {
-    // creer user
-    // update prend en charge
-    // liste commande of customer logged
-    /*menus:[
-    {idmenu:1,xl:true},
-    {}]
-    */
 
     static async setResponsibleOfOrder(orderId: number, userId: number): Promise<Order> {
         const order = await getRepository(Order).findOne(orderId)

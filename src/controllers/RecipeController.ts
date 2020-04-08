@@ -5,6 +5,7 @@ import {ISuccess} from "../interfaces/ISuccess";
 import {Recipe} from "../entities/Recipe";
 import {ProductLine} from "../entities/ProductLine";
 import {Unit} from "../entities/Unit";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class RecipeController {
     private static async canSaveRecipe(unitId: number, productLineId: number, ingredientId: number): Promise<IError | { unit: Unit, productLine: ProductLine, ingredient: Ingredient }> {
@@ -36,14 +37,8 @@ export class RecipeController {
         }
     }
 
-    static async getRecipe(productId: number): Promise<Recipe[] | IError> {
+    static async getRecipe(productId: number): Promise<Recipe[]> {
         const productLine = await getRepository(ProductLine).findOne(productId);
-        if (!productLine) {
-            return {
-                Code: 400,
-                Message: "Cette ligne de produit n'existe pas"
-            }
-        }
         return await getRepository(Recipe).find({
             where: {
                 productLine: productLine
@@ -52,48 +47,33 @@ export class RecipeController {
 
     }
 
-    static async createRecipeLine(quantity: number, removable: boolean, unitId: number, productLineId: number, ingredientId: number): Promise<Recipe | IError> {
+    static async createRecipeLine(quantity: number, removable: boolean, unitId: number, productLineId: number, ingredientId: number): Promise<Recipe> {
         const canCreate = await RecipeController.canSaveRecipe(unitId, productLineId, ingredientId) as { unit: Unit, productLine: ProductLine, ingredient: Ingredient };
-        try {
-            const recipe: Recipe = await getRepository(Recipe).create({
-                quantity: quantity,
-                removable: removable,
-                unit: canCreate.unit,
-                productLine: canCreate.productLine,
-                ingredient: canCreate.ingredient
-            });
-
-            return await getRepository(Recipe).save(recipe);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+        const recipe: Recipe = await getRepository(Recipe).create({
+            quantity: quantity,
+            removable: removable,
+            unit: canCreate.unit,
+            productLine: canCreate.productLine,
+            ingredient: canCreate.ingredient
+        });
+        return await getRepository(Recipe).save(recipe);
     }
 
-    static async updateRecipeLine(id: number, quantity: number, removable: boolean, unitId: number, productLineId: number, ingredientId: number): Promise<Recipe | IError> {
+    static async updateRecipeLine(id: number, quantity: number, removable: boolean, unitId: number, productLineId: number, ingredientId: number): Promise<Recipe> {
         const canUpdate = await RecipeController.canSaveRecipe(unitId, productLineId, ingredientId) as { unit: Unit, productLine: ProductLine, ingredient: Ingredient };
-        try {
-            const recipe = {
-                id: id,
-                quantity: quantity,
-                removable: removable,
-                unit: canUpdate.unit,
-                productLine: canUpdate.productLine,
-                ingredient: canUpdate.ingredient
-            };
-            const resRecipe = await getRepository(Recipe).preload(recipe)
-            return await getRepository(Recipe).save(resRecipe);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+        const recipe = {
+            id: id,
+            quantity: quantity,
+            removable: removable,
+            unit: canUpdate.unit,
+            productLine: canUpdate.productLine,
+            ingredient: canUpdate.ingredient
+        };
+        const resRecipe = await getRepository(Recipe).preload(recipe)
+        return await getRepository(Recipe).save(resRecipe);
     }
 
-    static async deleteRecipeLine(id: number): Promise<ISuccess | IError> {
+    static async deleteRecipeLine(id: number): Promise<IMessageResponse> {
         try {
             const recepeLine = await getRepository(Recipe).delete(id);
             return {

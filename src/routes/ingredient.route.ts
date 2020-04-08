@@ -9,7 +9,6 @@ import {IngredientController} from "../controllers/IngredientController";
 const router = Router();
 
 router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) => {
-
     const ingredients: Ingredient[] = await IngredientController.getAllIngredients();
     res.status(200).json(ingredients);
 });
