@@ -18,7 +18,7 @@ export class Recipe {
     @ManyToOne(type => Unit)
     unit: Unit;
 
-    @ManyToOne(type => ProductLine)
+    @ManyToOne(type => ProductLine, line => line.recipes)
     productLine: ProductLine;
 
     @ManyToOne(type => Ingredient)

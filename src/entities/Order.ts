@@ -1,7 +1,9 @@
-import {Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "./User";
 import {Menu} from "./Menu";
 import {ProductLine} from "./ProductLine";
+import {MenuOrder} from "./MenuOrder";
+import {ProductLineOrder} from "./ProductLineOrder";
 
 @Entity()
 export class Order {
@@ -23,13 +25,13 @@ export class Order {
     @JoinColumn()
     orderCustomer: User;
 
-    @ManyToMany(type => Menu, {nullable: true,eager:true})
+    @OneToMany(type => MenuOrder, menuorder => menuorder.order, {nullable: true, eager: true})
     @JoinTable()
-    menus: Menu[];
+    menuOrders: MenuOrder[];
 
-    @ManyToMany(type => ProductLine, {nullable: true,eager:true})
+    @ManyToMany(type => ProductLineOrder, productLineOrder => productLineOrder.order, {nullable: true, eager: true})
     @JoinTable()
-    productLines: ProductLine[];
+    productLineOrders: ProductLineOrder[];
 
 
 }

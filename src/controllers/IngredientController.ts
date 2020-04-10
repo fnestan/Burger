@@ -2,6 +2,7 @@ import {IError} from "../interfaces/IError";
 import {getRepository} from "typeorm";
 import {ISuccess} from "../interfaces/ISuccess";
 import {Ingredient} from "../entities/Ingredient";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class IngredientController {
 
@@ -32,18 +33,11 @@ export class IngredientController {
         }
     }
 
-    static async deleteIngredient(id: number): Promise<ISuccess | IError> {
-        try {
-            const ingredient = await getRepository(Ingredient).delete(id);
-            return {
-                Code: 201,
-                Message: "Successful"
-            }
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
+    static async deleteIngredient(id: number): Promise<IMessageResponse> {
+        const ingredient = await getRepository(Ingredient).delete(id);
+        return {
+            Code: 201,
+            Message: "Successful"
         }
     }
 }

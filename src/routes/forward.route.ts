@@ -1,13 +1,8 @@
-import {NextFunction, Request, Response, Router} from "express";
+import {Request, Response, Router} from "express";
 import bodyParser from "body-parser";
-import {IError} from "../interfaces/IError";
-import {ISuccess} from "../interfaces/ISuccess";
 import {AdminMiddleware} from "../middlewares/AdminMiddleware";
 import {Forward} from "../entities/Forward";
 import {ForwardController} from "../controllers/ForwardController";
-import {getRepository} from "typeorm";
-import {Role} from "../entities/Role";
-import {UserController} from "../controllers/UserController";
 import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
 
 const router = Router();

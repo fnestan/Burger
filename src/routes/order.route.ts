@@ -15,7 +15,7 @@ router.put('/:orderId', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder
     res.status(201).json(order);
 });
 
-// orderCustomerId?: number, menuIds?: [{ menuId: number, xl: boolean }], productLineIds?: number[]
+// orderCustomerId?: number, menuIds?: [{ menuId: number, xl: boolean, productLine : [{productLineId: number, ingredienttoremove:[]}]      }], productLineIds?: [{ productId: number, removeIngredient: number[]}]
 router.post('/', [bodyParser.json()], async (req: Request, res: Response) => {
     const {orderCustomerId, menuIds, productLineIds} = req.body;
     const order = await OrderController.createOrder(+orderCustomerId, menuIds, productLineIds);

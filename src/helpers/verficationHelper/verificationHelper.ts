@@ -5,6 +5,11 @@ import {RoleTypes} from "../../enums/RoleTypes";
 import {User} from "../../entities/User";
 import {discoutFromMenuId, discoutFromProductLineId} from "../queryHelpers/discountQueryHelper";
 import {entityFromId} from "../queryHelpers/QueryHelpersById";
+import {forwardFromMenuId, forwardFromProductLineId} from "../queryHelpers/forwardQueryHelpers";
+import {getRepository} from "typeorm";
+import {ProductLine} from "../../entities/ProductLine";
+import {Recipe} from "../../entities/Recipe";
+import {Ingredient} from "../../entities/Ingredient";
 
 export class VerificationHelper {
     static async emailAlreadyExiest(email: string, res: Response) {
@@ -110,7 +115,7 @@ export class VerificationHelper {
 
     static async forwardExistOnMenu(menuId: number, res: Response) {
         try {
-            const discount = await discoutFromMenuId(menuId);
+            const discount = await forwardFromMenuId(menuId);
             if (discount) {
                 let response: IMessageResponse = {
                     Code: 400,
@@ -126,7 +131,7 @@ export class VerificationHelper {
 
     static async forwardExistOnProductLine(productLineId: number, res: Response) {
         try {
-            const discount = await discoutFromProductLineId(productLineId);
+            const discount = await forwardFromProductLineId(productLineId);
             if (discount) {
                 let response: IMessageResponse = {
                     Code: 400,
@@ -138,6 +143,30 @@ export class VerificationHelper {
         } catch (e) {
             console.log(e);
         }
+    }
+
+    static async stringforRemoveIngredient(productLine: [{ productLineId: number, ingredienttoremove: [] }]): Promise<string> {
+        let response: string = "";
+        let res: Response;
+        for (let i = 0; i < productLine.length; i++) {
+            await this.elementDoesNotExist(productLine[i].productLineId, res, "ProductLine");
+            const Pl = await getRepository(ProductLine).findOne(productLine[i].productLineId);
+            response.concat(response, Pl.product.name);
+            for (let j = 0; j < productLine[i].ingredienttoremove.length; j++) {
+                await this.elementDoesNotExist(productLine[i].ingredienttoremove[j], res, "Ingredient");
+                const ingredient = await getRepository(Ingredient).findOne(productLine[i].ingredienttoremove[j]);
+                const recipe = await getRepository(Recipe).findOne({
+                    where: {
+                        ingredient: ingredient,
+                        productLine: Pl
+                    }
+                });
+                if (recipe) {
+                    response.concat(response, " sans ", ingredient.name);
+                }
+            }
+        }
+        return response;
     }
 }
 

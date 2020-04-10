@@ -9,7 +9,7 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 
 const router = Router();
 
-router.get('/', AdminMiddleware.isOrderPicker(), async (req: Request, res: Response) => {
+router.get('/:productlineId', AdminMiddleware.isOrderPicker(), async (req: Request, res: Response) => {
     await VerificationHelper.elementDoesNotExist(+req.params.productlineId, res, "ProductLine");
     const recipes: Recipe[] = await RecipeController.getRecipe(+req.params.productlineId);
     res.status(200).json(recipes);

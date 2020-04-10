@@ -14,6 +14,6 @@ export class Product {
     @ManyToOne(type => RefTypeProduct, type => type.products, {onDelete: 'CASCADE'})
     type: RefTypeProduct;
 
-    @OneToMany(type => ProductLine, productLine => productLine.product, {lazy: true, onDelete: 'CASCADE'})
+    @OneToMany(type => ProductLine, productLine => productLine.product, {eager: true, onDelete: 'CASCADE'})
     productLines: ProductLine[];
 }

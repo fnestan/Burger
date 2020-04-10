@@ -1,5 +1,6 @@
-import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {ProductLine} from "./ProductLine";
+import {MenuOrder} from "./MenuOrder";
 
 @Entity()
 export class Menu {
@@ -16,8 +17,13 @@ export class Menu {
     @Column()
     orderable: boolean;
 
+    @Column({type: "float"})
+    priceXl: number;
+
     @ManyToMany(type => ProductLine, {eager:true})
     @JoinTable()
     productLines: ProductLine[];
 
+    @OneToMany(type => MenuOrder, menuOrder=> menuOrder.menu)
+    menuOrders: MenuOrder[];
 }

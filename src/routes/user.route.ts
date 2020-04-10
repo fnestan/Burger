@@ -7,6 +7,7 @@ import bodyParser from "body-parser";
 import {IError} from "../interfaces/IError";
 import {User} from "../entities/User";
 import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get('/byId/:id', AdminMiddleware.isLogged(), async (req: Request, res: Re
         const user = await UserController.getUserById(+req.params.id);
         res.status(200).json(user);
     } else {
-        const response: IError = {
+        const response: IMessageResponse = {
             Code: 401,
             Message: "Vous n'êtes pas autorisé à consulter cet utilisateur"
         };
@@ -30,19 +31,19 @@ router.put('/update/:id', [AdminMiddleware.isLogged(), bodyParser.json()], async
     const {firstname, lastname, email, password} = req.body;
     VerificationHelper.allRequiredParam(firstname, lastname, email, password, res);
     await VerificationHelper.elementDoesNotExist(+req.params.id, res, "User");
-    const userByEmail = await userFromEmail(req.body.email);
+    const userByEmail = await userFromEmail(email);
     const userById = await UserController.getUserById(+req.params.id);
     // Si un utilisateur existe avec l'adresse email rentrée (userByEmail)
     // et que un utilisateur existe avec l'id passé en paramètre (userById) et que l'id de userById est différent de l'id de userByEmail
     // l'email existe donc déjà
     if (userByEmail && userById.id !== userByEmail.id) {
-        const response: IError = {
+        const response: IMessageResponse = {
             Code: 409,
             Message: "l'email existe déjà"
         };
         res.status(response.Code).json(response.Message);
     } else {
-        const responseUser = await userFromToken(req.headers["authorization"].split(" ")[1]);
+        const responseUser = await userFromToken(tokentSpit(req.headers["authorization"]));
         if (responseUser.role.id === RoleTypes.Admin || responseUser.id === +req.params.id) {
             const UserSend = {
                 firstname: req.body.firstname,
@@ -52,9 +53,9 @@ router.put('/update/:id', [AdminMiddleware.isLogged(), bodyParser.json()], async
             const user = await UserController.updateUser(+req.params.id, UserSend as User);
             res.status(200).json(user);
         } else {
-            const response: IError = {
+            const response: IMessageResponse = {
                 Code: 401,
-                Message: "Vous n'êtes pas autorisé à consulter cet utilisateur"
+                Message: "Vous n'êtes pas autorisé à modifier cet utilisateur"
             };
             res.status(response.Code).json(response.Message);
         }
