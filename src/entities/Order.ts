@@ -29,9 +29,9 @@ export class Order {
     @JoinTable()
     menuOrders: MenuOrder[];
 
-    @ManyToMany(type => ProductLineOrder, productLineOrder => productLineOrder.order, {nullable: true, eager: true})
+    @OneToMany(type => ProductLineOrder, productLineOrder => productLineOrder.order, {nullable: true, eager: true})
     @JoinTable()
-    productLineOrders: ProductLineOrder[];
+    productLineOrders : ProductLineOrder[];
 
 
 }

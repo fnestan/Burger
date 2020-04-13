@@ -19,12 +19,13 @@ export class ProductLine {
     @Column()
     orderable: boolean;
 
-    @ManyToOne(type => Product, product => product.productLines, {onDelete: 'CASCADE'})
+
+    @ManyToOne(type => Product, product => product.productLines, {onDelete: 'CASCADE', lazy: true})
     product: Product;
 
-    @OneToMany(type => Recipe, recipe => recipe.productLine,{eager:true})
+    @OneToMany(type => Recipe, recipe => recipe.productLine, {eager: true})
     recipes: Recipe[];
 
-    @OneToMany(type => ProductLineOrder, ProductLineOrder=> ProductLineOrder.productLine)
+    @OneToMany(type => ProductLineOrder, ProductLineOrder => ProductLineOrder.productLine)
     ProductLinesOrders: ProductLineOrder[];
 }

@@ -8,7 +8,17 @@ import {IMessageResponse} from "../interfaces/IMessageResponse";
 import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 
 const router = Router();
-
+/**
+ * @api {post} /auth/login Request for login
+ * @apiName login
+ * @apiGroup Auth
+ *
+ * @apiParam {String} email
+ * @apiParam {String} password
+ *
+ * @apiSuccess {User} return user with token
+ * @apiError  {string} return error response
+ */
 router.post('/login', bodyParser.json(), async (req: Request, res: Response) => {
     const {email, password} = req.body;
     VerificationHelper.allRequiredParam(email, password, res);
@@ -24,6 +34,21 @@ router.post('/login', bodyParser.json(), async (req: Request, res: Response) => 
     }
 });
 
+/**
+ * @api {post} /auth/signUp Request for signup
+ * @apiName signUp
+ * @apiGroup Auth
+ *
+ * @apiParam {String} firstname
+ * @apiParam {String} email
+ * @apiParam {String} lastname
+ * @apiParam {String} password
+ * @apiParam {String} passwordConfirm
+ * @apiParam {number} roleId
+ *
+ * @apiSuccess {User} return user
+ * @apiError  {string} return error response
+ */
 router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, next: NextFunction) => {
     const {firstname, email, lastname, password, passwordConfirm, roleId} = req.body;
     VerificationHelper.allRequiredParam(firstname, email, lastname, password, passwordConfirm, roleId, res);
@@ -42,19 +67,35 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
         } else {
             role = roleId;
         }
-        await AuthController.signUp(firstname, lastname, email, password, role);
     }
+    try {
+        const user = await AuthController.signUp(firstname, lastname, email, password, role);
+        res.status(201).json(user);
+    } catch (e) {
+        res.status(400).json(e);
+
+    }
+
 });
 
-router.get('/logout', [AdminMiddleware.isLogged()], async (req: Request, res: Response) => {
+/**
+ * @api {get} /auth/signUp Request for logout
+ * @apiName logout
+ * @apiGroup Auth
+
+ *
+ * @apiSuccess {User} return user
+ * @apiError  {string} return error response
+ */
+router.get('/logout', AdminMiddleware.isLogged(), async (req: Request, res: Response) => {
+    console.log(tokentSpit(req.headers['authorization']));
     try {
         const response = await AuthController.logout(tokentSpit(req.headers['authorization']));
         res.status(200).json(response);
     } catch (e) {
         res.status(500).json(e);
-
     }
 
-})
+});
 
 export default router;

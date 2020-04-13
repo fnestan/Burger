@@ -1,7 +1,6 @@
 import {RefTypeProduct} from "../entities/RefTypeProduct";
 import {getRepository} from "typeorm";
-import {ISuccess} from "../interfaces/ISuccess";
-import {IError} from "../interfaces/IError";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class TypesController {
     static async getAllRefTypeProduct(isAdmin: boolean): Promise<RefTypeProduct[]> {
@@ -25,23 +24,16 @@ export class TypesController {
         return await getRepository(RefTypeProduct).save(ref);
     }
 
-    static async updateRefTypeProduct(id: number, label: string): Promise<RefTypeProduct | IError> {
-        try {
-            const ref = {
-                id: id,
-                label: label
-            };
-            const resRef = await getRepository(RefTypeProduct).preload(ref)
-            return await getRepository(RefTypeProduct).save(resRef);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+    static async updateRefTypeProduct(id: number, label: string): Promise<RefTypeProduct> {
+        const ref = {
+            id: id,
+            label: label
+        };
+        const resRef = await getRepository(RefTypeProduct).preload(ref)
+        return await getRepository(RefTypeProduct).save(resRef);
     }
 
-    static async deleteRefTypeProduct(id: number): Promise<ISuccess | IError> {
+    static async deleteRefTypeProduct(id: number): Promise<IMessageResponse> {
         try {
             const ref = await getRepository(RefTypeProduct).delete(id);
             return {

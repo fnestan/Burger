@@ -8,6 +8,7 @@ import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 import {MenuOrder} from "../entities/MenuOrder";
 import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
 import {ProductLineOrder} from "../entities/ProductLineOrder";
+import {PdfGen} from "../helpers/pdf/PdfGen";
 
 export class OrderController {
 
@@ -24,64 +25,83 @@ export class OrderController {
                                  menuId: number, xl: boolean,
                                  productLine: [{ productLineId: number, ingredienttoremove: [] }]
                              }],
-                             productLineIds?: [{ productId: number, removeIngredient: number[] }]): Promise<Order> {
-        let menus: Menu[], productLines, orderCustomer = null;
-        if (menuIds) {
-            menus = await getRepository(Menu).findByIds(menuIds.map(menuId => menuId.menuId))
-        }
-        if (productLineIds) {
-            //productId
-            productLines = await getRepository(ProductLine).findByIds(productLineIds.map(productLineId => productLineId.productId))
-        }
+                             productLineIds?: [{ productLineId: number, ingredienttoremove: number[] }] ): Promise<Order> {
+        let orderCustomer = null;
+        let price = 0;
         if (orderCustomerId) {
             orderCustomer = await getRepository(ProductLine).findOne({id: orderCustomerId})
         }
-        let price = 0;
         const order = await getRepository(Order).create({
             orderNum: Math.floor(Math.random() * Math.floor(1000000)),
             orderCustomer: orderCustomer,
-            price: price
+            price: price,
+            menuOrders: [],
+            productLineOrders: []
         });
-        for (let i = 0; i < productLines.length; i++) {
-            const stringRemoveIngredients: string = await VerificationHelper.stringforRemoveIngredient(menuIds[i].productLine);
-            const productLineOrder = getRepository(ProductLineOrder).create({
-                productLine: productLines[i],
-                order: order,
-                ingredientRemove: stringRemoveIngredients
-            });
-            await getRepository(ProductLineOrder).save(productLineOrder);
-            order.productLineOrders.push(productLineOrder);
-            let discount = await getRepository(Discount).findOne({id: productLines[i].id});
-            if (discount) {
-                price += discount.discount;
-            } else {
-                price += productLines[i].price;
+        getRepository(Order).save(order);
+        if (menuIds) {
+            for (let i = 0; i < menuIds.length; i++) {
+                const menu = await getRepository(Menu).findOne({id: menuIds[i].menuId});
+                let stringRemoveIngredients: string = null;
+                let menuPrice = 0;
+                if (menuIds[i].productLine) {
+                    stringRemoveIngredients = await VerificationHelper.stringforRemoveIngredient(menuIds[i].productLine);
+                }
+                let discount = await getRepository(Discount).findOne({menu: menu});
+                if (discount) {
+                    price += discount.discount;
+                    menuPrice = discount.discount;
+                } else {
+                    const isXL = menuIds[i].xl;
+                    if (isXL) {
+                        price += menu.priceXl;
+                        menuPrice = menu.priceXl;
+                    } else {
+                        price += menu.price;
+                        menuPrice = menu.price;
+                    }
+                }
+                const menuOrder = getRepository(MenuOrder).create({
+                    menu: menu,
+                    order: order,
+                    IsXl: menuIds[i].xl,
+                    price: menuPrice,
+                    ingredientRemove: stringRemoveIngredients
+                });
+                await getRepository(MenuOrder).save(menuOrder);
+                order.menuOrders.push(menuOrder);
             }
         }
-        for (let i = 0; i < menus.length; i++) {
-            const stringRemoveIngredients: string = await VerificationHelper.stringforRemoveIngredient(menuIds[i].productLine);
-            const menuOrder = getRepository(MenuOrder).create({
-                menu: menus[i],
-                order: order,
-                IsXl: menuIds[i].xl,
-                ingredientRemove: stringRemoveIngredients
-            });
-            await getRepository(ProductLineOrder).save(menuOrder);
-            order.menuOrders.push(menuOrder);
-            let discount = await getRepository(Discount).findOne({id: menus[i].id});
-            if (discount) {
-                price += discount.discount;
-            } else {
-                const isXL = menuIds.find(menu => menu.menuId === menus[i].id).xl;
-                if (isXL) {
-                    price += menus[i].price + 0.75;
+        if (productLineIds) {
+            //productId
+            for (let i = 0; i < productLineIds.length; i++) {
+                const productLine = await getRepository(ProductLine).findOne({id: productLineIds[i].productLineId});
+                let lineOrderPrice = 0;
+                const stringRemoveIngredients: string = await VerificationHelper.test(productLine,productLineIds[i].ingredienttoremove);
+
+                let discount = await getRepository(Discount).findOne({productLine: productLine});
+                if (discount) {
+                    price += discount.discount;
+                    lineOrderPrice = discount.discount;
                 } else {
-                    price += menus[i].price;
+                    price += productLine.price;
+                    lineOrderPrice = productLine.price;
+
                 }
+                const productLineOrder = getRepository(ProductLineOrder).create({
+                    productLine: productLine,
+                    order: order,
+                    ingredientRemove: stringRemoveIngredients,
+                    price: lineOrderPrice
+                });
+                await getRepository(ProductLineOrder).save(productLineOrder);
+                order.productLineOrders.push(productLineOrder);
             }
         }
         order.price = price;
-        return getRepository(Order).save(order);
+        const resOrder = await getRepository(Order).save(order);
+        await PdfGen.genPdf(resOrder);
+        return resOrder;
     }
 
     static async getCustomerOrders(token: string) {

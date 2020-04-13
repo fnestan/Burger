@@ -1,9 +1,6 @@
-import {Discount} from "../entities/Discount";
 import {getRepository} from "typeorm";
 import {Menu} from "../entities/Menu";
 import {ProductLine} from "../entities/ProductLine";
-import {IError} from "../interfaces/IError";
-import {ISuccess} from "../interfaces/ISuccess";
 import {Forward} from "../entities/Forward";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 

@@ -1,8 +1,6 @@
 import {Unit} from "../entities/Unit";
 import {getRepository} from "typeorm";
-import {IError} from "../interfaces/IError";
-import {ISuccess} from "../interfaces/ISuccess";
-import {Ingredient} from "../entities/Ingredient";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class UnitController {
 
@@ -17,23 +15,17 @@ export class UnitController {
         return await getRepository(Unit).save(unit);
     }
 
-    static async updateUnit(id: number, name: string): Promise<Unit | IError> {
-        try {
-            const unit = {
-                id: id,
-                name: name
-            };
-            const resUnit = await getRepository(Unit).preload(unit);
-            return await getRepository(Unit).save(resUnit);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+    static async updateUnit(id: number, name: string): Promise<Unit> {
+        const unit = {
+            id: id,
+            name: name
+        };
+        const resUnit = await getRepository(Unit).preload(unit);
+        return await getRepository(Unit).save(resUnit);
+
     }
 
-    static async deleteUnit(id: number): Promise<ISuccess | IError> {
+    static async deleteUnit(id: number): Promise<IMessageResponse> {
         try {
             const unit = await getRepository(Unit).delete(id);
             return {

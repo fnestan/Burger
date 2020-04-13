@@ -1,14 +1,12 @@
 import {getRepository} from "typeorm";
 import {Ingredient} from "../entities/Ingredient";
-import {IError} from "../interfaces/IError";
-import {ISuccess} from "../interfaces/ISuccess";
 import {Recipe} from "../entities/Recipe";
 import {ProductLine} from "../entities/ProductLine";
 import {Unit} from "../entities/Unit";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class RecipeController {
-    private static async canSaveRecipe(unitId: number, productLineId: number, ingredientId: number): Promise<IError | { unit: Unit, productLine: ProductLine, ingredient: Ingredient }> {
+    private static async canSaveRecipe(unitId: number, productLineId: number, ingredientId: number): Promise<IMessageResponse | { unit: Unit, productLine: ProductLine, ingredient: Ingredient }> {
         const productLine = await getRepository(ProductLine).findOne(productLineId);
         if (!productLine) {
             return {
@@ -59,15 +57,11 @@ export class RecipeController {
         return await getRepository(Recipe).save(recipe);
     }
 
-    static async updateRecipeLine(id: number, quantity: number, removable: boolean, unitId: number, productLineId: number, ingredientId: number): Promise<Recipe> {
-        const canUpdate = await RecipeController.canSaveRecipe(unitId, productLineId, ingredientId) as { unit: Unit, productLine: ProductLine, ingredient: Ingredient };
+    static async updateRecipeLine(id: number, quantity: number, removable: boolean): Promise<Recipe> {
         const recipe = {
             id: id,
             quantity: quantity,
-            removable: removable,
-            unit: canUpdate.unit,
-            productLine: canUpdate.productLine,
-            ingredient: canUpdate.ingredient
+            removable: removable
         };
         const resRecipe = await getRepository(Recipe).preload(recipe)
         return await getRepository(Recipe).save(resRecipe);

@@ -9,8 +9,11 @@ export class AdminMiddleware {
 
     static isAdmin() {
         return async function (req: Request, res: Response, next: NextFunction) {
-            const authorization = req.headers['authorization'].split(" ")[1];
-            const user = await userFromToken(authorization);
+            const authorization = req.headers['authorization'];
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
             if (!user) {
                 res.status(403).end();
                 return;
@@ -26,13 +29,15 @@ export class AdminMiddleware {
 
     static canTakeChargeOfOrder() {
         return async (req: Request, res: Response, next: NextFunction) => {
-            const authorization = req.headers['authorization'].split(" ")[1];
-            const user = await userFromToken(authorization);
+            const authorization = req.headers['authorization'];
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
             if (!user) {
                 res.status(403).end();
                 return;
             }
-            console.log(user);
             if (user.role.id !== RoleTypes.OrderPicker && user.role.id !== RoleTypes.Admin) {
                 res.status(403).end();
                 return;
@@ -44,7 +49,10 @@ export class AdminMiddleware {
     static isOrderPicker() {
         return async function (req: Request, res: Response, next: NextFunction) {
             const authorization = req.headers['authorization'].split(" ")[1];
-            const user = await userFromToken(authorization);
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
             if (!user) {
                 res.status(403).end();
                 return;
@@ -67,7 +75,7 @@ export class AdminMiddleware {
             }
             let token;
             try {
-                token = <any>jsonwebtoken.verify(authorization.split(" ")[1], "secret");
+                token = <any>jsonwebtoken.verify(tokentSpit(authorization), "secret");
             } catch (error) {
                 //If token is not valid, respond with 401 (unauthorized)
                 res.status(401).json(error);

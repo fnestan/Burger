@@ -1,11 +1,7 @@
-import {RoleTypes} from "../enums/RoleTypes";
 import {Equal, getRepository, Not} from "typeorm";
 import {Role} from "../entities/Role";
 import {User} from "../entities/User";
-import {NotEquals} from "class-validator";
-import get = Reflect.get;
-import {ISuccess} from "../interfaces/ISuccess";
-import {IError} from "../interfaces/IError";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class UserController {
 
@@ -27,15 +23,13 @@ export class UserController {
     }
 
     static async updateUser(id: number, user: User): Promise<User> {
-        //let userResult = await getRepository(User).update(id, user);
-        //return {Code: 200, };
         return await getRepository(User).save({
             ...await getRepository(User).findOne(id),
             ...user
         });
     }
 
-    static async deleteUser(id: number): Promise<ISuccess | IError> {
+    static async deleteUser(id: number): Promise<IMessageResponse> {
         let userResult = await getRepository(User).delete({
             id: id
         });

@@ -18,8 +18,11 @@ export class MenuOrder {
     @Column()
     IsXl: boolean;
 
-    @Column()
-    ingredientRemove:string;
+    @Column({type: "float"})
+    price: number;
+
+    @Column({nullable: true})
+    ingredientRemove: string;
 
 
 }

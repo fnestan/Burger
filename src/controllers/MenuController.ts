@@ -1,6 +1,4 @@
-import {IError} from "../interfaces/IError";
-import {createQueryBuilder, Entity, getRepository} from "typeorm";
-import {ISuccess} from "../interfaces/ISuccess";
+import {getRepository} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
 import {Menu} from "../entities/Menu";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
@@ -43,7 +41,7 @@ export class MenuController {
         return await getRepository(Menu).save(menu);
     }
 
-    static async updateMenu(id: number, name: string, price: number, orderable: boolean, productLineIds: number[], priceXl: number): Promise<Menu | IError> {
+    static async updateMenu(id: number, name: string, price: number, orderable: boolean, productLineIds: number[], priceXl: number): Promise<Menu> {
         const productLines: ProductLine[] = await getRepository(ProductLine).findByIds(productLineIds);
         const menu = {
             id: id,

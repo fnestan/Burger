@@ -1,34 +1,20 @@
 import {Product} from "../entities/Product";
 import {getRepository} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
-import {IError} from "../interfaces/IError";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 export class ProductLineController {
 
 
-    static async createProductLine(desc_size: string, price: number, orderable: boolean, productId: number): Promise<ProductLine | IError> {
+    static async createProductLine(desc_size: string, price: number, orderable: boolean, productId: number): Promise<ProductLine> {
         const product: Product = await getRepository(Product).findOne(productId);
-        if (!product) {
-            return {
-                Code: 400,
-                Message: "Le produit n'existe pas"
-            }
-        }
-        try {
-            const productLine: ProductLine = await getRepository(ProductLine).create({
-                desc_size: desc_size,
-                price: price,
-                orderable: orderable,
-                product: product
-            });
-            return await getRepository(ProductLine).save(productLine);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
-        }
+        const productLine: ProductLine = await getRepository(ProductLine).create({
+            desc_size: desc_size,
+            price: price,
+            orderable: orderable,
+            product: product
+        });
+        return await getRepository(ProductLine).save(productLine);
     }
 
     static async updateProductLine(id: number, desc_size: string, price: number, orderable: boolean, productId: number): Promise<ProductLine> {

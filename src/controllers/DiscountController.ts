@@ -1,8 +1,5 @@
 import {ProductLine} from "../entities/ProductLine";
-import {IError} from "../interfaces/IError";
-import {Product} from "../entities/Product";
-import {Column, getRepository, OneToOne} from "typeorm";
-import {ISuccess} from "../interfaces/ISuccess";
+import {getRepository} from "typeorm";
 import {Discount} from "../entities/Discount";
 import {Menu} from "../entities/Menu";
 import {IMessageResponse} from "../interfaces/IMessageResponse";

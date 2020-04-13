@@ -9,37 +9,98 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 
 const router = Router();
 
-router.get('/:productlineId', AdminMiddleware.isOrderPicker(), async (req: Request, res: Response) => {
+/**
+ * @api {get} /recipes/:productlineId Request for get recipes by productline id
+ * @apiName get recipes
+ * @apiGroup Recipes
+ * @apiHeader {String} token admin
+ * @apiPermission role admin
+ *
+ * @apiSuccess {Recipes} return list of Recipes
+ * @apiError  {string} unauthorize
+ */
+router.get('/:productlineId', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
     await VerificationHelper.elementDoesNotExist(+req.params.productlineId, res, "ProductLine");
-    const recipes: Recipe[] = await RecipeController.getRecipe(+req.params.productlineId);
-    res.status(200).json(recipes);
+    try {
+        const recipes: Recipe[] = await RecipeController.getRecipe(+req.params.productlineId);
+        res.status(200).json(recipes);
+    } catch (e) {
+        res.status(400).json(e);
+    }
 });
 
+/**
+ * @api {post} /ingredients/ Request for create line  recipe
+ * @apiName create recipe line
+ * @apiGroup Recipes
+ * @apiHeader {String} token admin
+ * @apiPermission role admin
+ *
+ * @apiParam {number} quantity of recipe
+ * @apiParam {boolean} removable of recipe
+ * @apiParam {unitId}  id of Unit
+ * @apiParam {number} id of productLine
+ * @apiParam {number} id of ingredient
+ *
+ * @apiSuccess {Recipe} return Recipe
+ * @apiError  {string} unauthorize
+ */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {quantity, removable, unitId, productLineId, ingredientId} = req.body;
     await VerificationHelper.elementDoesNotExist(+productLineId, res, "ProductLine");
     await VerificationHelper.elementDoesNotExist(+unitId, res, "Unit");
     await VerificationHelper.elementDoesNotExist(+ingredientId, res, "Ingredient");
     VerificationHelper.allRequiredParam(quantity, removable, unitId, productLineId, ingredientId, res);
-    const Recipe = await RecipeController.createRecipeLine(quantity, removable, unitId, productLineId, ingredientId);
-    res.status(201).json(Recipe);
+    try {
+        const Recipe = await RecipeController.createRecipeLine(+quantity, removable, +unitId, +productLineId, +ingredientId);
+        res.status(201).json(Recipe);
+    } catch (e) {
+        res.status(400).json(e);
+    }
 });
 
+/**
+ * @api {put} /recipes/:id  Request for update recipe
+ * @apiName update recipe
+ * @apiGroup Recipes
+ * @apiHeader {String} token admin
+ * @apiPermission role admin
+ *
+ * @apiParam {number} quantity of recipe
+ * @apiParam {boolean} removable of recipe
+ *
+ * @apiSuccess {Recipe} return Recipe
+ * @apiError  {string} unauthorize
+ */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    const {quantity, removable, unitId, productLineId, ingredientId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+productLineId, res, "ProductLine");
-    await VerificationHelper.elementDoesNotExist(+unitId, res, "Unit");
-    await VerificationHelper.elementDoesNotExist(+ingredientId, res, "Ingredient");
+    const {quantity, removable} = req.body;
     await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
-    VerificationHelper.allRequiredParam(quantity, removable, unitId, productLineId, ingredientId, res);
-    const recipe = await RecipeController.updateRecipeLine(+req.params.id, req.body.quantity, req.body.removable, req.body.unitId, req.body.productLineId, req.body.ingredientId);
-    res.status(200).json(recipe);
+    VerificationHelper.allRequiredParam(quantity, removable, res);
+    try {
+        const recipe = await RecipeController.updateRecipeLine(+req.params.id, quantity, removable);
+        res.status(200).json(recipe);
+    } catch (e) {
+        res.status(400).json(e);
+    }
 });
 
+/**
+ * @api {delete} /recipes/:id  Request for delete recipe
+ * @apiName delete recipe
+ * @apiGroup Recipes
+ * @apiHeader {String} token admin
+ * @apiPermission role admin
+ *
+ * @apiSuccess {string} return success
+ */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
-    const recipe: IError | ISuccess = await RecipeController.deleteRecipeLine(+req.params.id);
-    res.status(recipe.Code).json(recipe.Message);
+    try {
+        const recipe: IError | ISuccess = await RecipeController.deleteRecipeLine(+req.params.id);
+        res.status(recipe.Code).json(recipe.Message);
+    } catch (e) {
+        res.status(400).json(e);
+    }
 });
 
 export default router;

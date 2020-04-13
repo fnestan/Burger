@@ -1,6 +1,4 @@
-import {IError} from "../interfaces/IError";
 import {getRepository} from "typeorm";
-import {ISuccess} from "../interfaces/ISuccess";
 import {Ingredient} from "../entities/Ingredient";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
@@ -17,20 +15,13 @@ export class IngredientController {
         return await getRepository(Ingredient).save(ingredient);
     }
 
-    static async updateIngredient(id: number, name: string): Promise<Ingredient | IError> {
-        try {
-            const ingredient = {
-                id: id,
-                name: name
-            };
-            const resIngredient = await getRepository(Ingredient).preload(ingredient)
-            return await getRepository(Ingredient).save(resIngredient);
-        } catch (e) {
-            return {
-                Code: 400,
-                Message: e.toString()
-            }
+    static async updateIngredient(id: number, name: string): Promise<Ingredient> {
+        const ingredient = {
+            id: id,
+            name: name
         }
+        const resIngredient = await getRepository(Ingredient).preload(ingredient);
+        return await getRepository(Ingredient).save(resIngredient);
     }
 
     static async deleteIngredient(id: number): Promise<IMessageResponse> {

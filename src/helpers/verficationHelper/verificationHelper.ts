@@ -10,6 +10,7 @@ import {getRepository} from "typeorm";
 import {ProductLine} from "../../entities/ProductLine";
 import {Recipe} from "../../entities/Recipe";
 import {Ingredient} from "../../entities/Ingredient";
+import {Product} from "../../entities/Product";
 
 export class VerificationHelper {
     static async emailAlreadyExiest(email: string, res: Response) {
@@ -52,7 +53,7 @@ export class VerificationHelper {
 
     static allRequiredParam(...args: any) {
         for (let i: number = 0; i < args.length - 1; i++) {
-            if (!args[i]) {
+            if (!args[i] && typeof args[i] !== "boolean") {
                 let response: IMessageResponse = {
                     Code: 400,
                     Message: "Certains Champ sont obligatoires"
@@ -103,13 +104,13 @@ export class VerificationHelper {
             if (!element) {
                 let response: IMessageResponse = {
                     Code: 400,
-                    Message: "Ce(Cette) " + typelelment + " n'exste pas"
+                    Message: "Ce(Cette) " + typelelment + " n'existe pas"
                 };
                 res.status(response.Code).json(response.Message);
                 return;
             }
         } catch (e) {
-            console.log(e);
+            e;
         }
     }
 
@@ -145,13 +146,17 @@ export class VerificationHelper {
         }
     }
 
+    //static async stringforRemoveIngredient(pl:ProductLine,idIngredientToRemove[]): Promise<string>
     static async stringforRemoveIngredient(productLine: [{ productLineId: number, ingredienttoremove: [] }]): Promise<string> {
         let response: string = "";
         let res: Response;
         for (let i = 0; i < productLine.length; i++) {
             await this.elementDoesNotExist(productLine[i].productLineId, res, "ProductLine");
-            const Pl = await getRepository(ProductLine).findOne(productLine[i].productLineId);
-            response.concat(response, Pl.product.name);
+            const Pl = await getRepository(ProductLine).findOne({
+                where: {
+                    id: productLine[i].productLineId
+                }
+            });
             for (let j = 0; j < productLine[i].ingredienttoremove.length; j++) {
                 await this.elementDoesNotExist(productLine[i].ingredienttoremove[j], res, "Ingredient");
                 const ingredient = await getRepository(Ingredient).findOne(productLine[i].ingredienttoremove[j]);
@@ -161,11 +166,31 @@ export class VerificationHelper {
                         productLine: Pl
                     }
                 });
-                if (recipe) {
-                    response.concat(response, " sans ", ingredient.name);
+                if (recipe && recipe.removable) {
+                    response = response.concat(" sans ", ingredient.name);
                 }
             }
         }
+        return response;
+    }
+
+    static async test(pl: ProductLine, idIngredientToRemove: number[]): Promise<string> {
+        let response: string = "";
+        let res: Response;
+        for (let j = 0; j < idIngredientToRemove.length; j++) {
+            await this.elementDoesNotExist(idIngredientToRemove[j], res, "Ingredient");
+            const ingredient = await getRepository(Ingredient).findOne(idIngredientToRemove[j]);
+            const recipe = await getRepository(Recipe).findOne({
+                where: {
+                    ingredient: ingredient,
+                    productLine: pl
+                }
+            });
+            if (recipe && recipe.removable) {
+                response = response.concat(" sans ", ingredient.name);
+            }
+        }
+
         return response;
     }
 }

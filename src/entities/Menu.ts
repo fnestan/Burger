@@ -20,10 +20,10 @@ export class Menu {
     @Column({type: "float"})
     priceXl: number;
 
-    @ManyToMany(type => ProductLine, {eager:true})
+    @ManyToMany(type => ProductLine, {eager: true})
     @JoinTable()
     productLines: ProductLine[];
 
-    @OneToMany(type => MenuOrder, menuOrder=> menuOrder.menu)
+    @OneToMany(type => MenuOrder, menuOrder => menuOrder.menu)
     menuOrders: MenuOrder[];
 }
