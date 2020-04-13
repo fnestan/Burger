@@ -4,15 +4,13 @@ import bcrypt, {compare} from "bcrypt";
 import {validate, ValidationError} from "class-validator";
 import jsonwebtoken from "jsonwebtoken";
 import {Role} from "../entities/Role";
-import {userFromToken} from "../helpers/userHelper";
-import {IError} from "../interfaces/IError";
-import {ISuccess} from "../interfaces/ISuccess";
+import {IMessageResponse} from "../interfaces/IMessageResponse";
+import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 
 export class AuthController {
 
     static async signUp(firstname: string, lastname: string, email: string, password: string, roleId: number): Promise<User | ValidationError[]> {
         const role = await getRepository(Role).findOne({id: roleId});
-
         const user = await getRepository(User).create({
             firstname: firstname,
             lastname: lastname,
@@ -29,7 +27,7 @@ export class AuthController {
 
     }
 
-    static async login(email: string, password: string): Promise<User | IError> {
+    static async login(email: string, password: string): Promise<User | IMessageResponse> {
         const userFound = await getRepository(User).findOne({
             email: email,
         });
@@ -58,7 +56,7 @@ export class AuthController {
         };
     }
 
-    static async logout(token: string): Promise<ISuccess | null> {
+    static async logout(token: string): Promise<IMessageResponse> {
         const user = await userFromToken(token);
         if (!user) {
             return null;

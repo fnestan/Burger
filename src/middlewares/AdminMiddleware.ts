@@ -1,5 +1,5 @@
 import {AuthController} from "../controllers/AuthController";
-import {userFromToken} from "../helpers/userHelper"
+import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 import {Request, Response, NextFunction} from "express";
 import {RoleTypes} from "../enums/RoleTypes";
 import jsonwebtoken from "jsonwebtoken";
@@ -9,14 +9,56 @@ export class AdminMiddleware {
 
     static isAdmin() {
         return async function (req: Request, res: Response, next: NextFunction) {
-            const authorization = req.headers['authorization'].split(" ")[1];
-            const user = await userFromToken(authorization);
+            const authorization = req.headers['authorization'];
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
             if (!user) {
                 res.status(403).end();
                 return;
             }
             console.log(user);
             if (user.role.id !== RoleTypes.Admin) {
+                res.status(403).end();
+                return;
+            }
+            next();
+        };
+    }
+
+    static canTakeChargeOfOrder() {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            const authorization = req.headers['authorization'];
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
+            if (!user) {
+                res.status(403).end();
+                return;
+            }
+            if (user.role.id !== RoleTypes.OrderPicker && user.role.id !== RoleTypes.Admin) {
+                res.status(403).end();
+                return;
+            }
+            next();
+        }
+    }
+
+    static isOrderPicker() {
+        return async function (req: Request, res: Response, next: NextFunction) {
+            const authorization = req.headers['authorization'].split(" ")[1];
+            let user;
+            if (authorization) {
+                user = await userFromToken(tokentSpit(authorization));
+            }
+            if (!user) {
+                res.status(403).end();
+                return;
+            }
+            console.log(user);
+            if (user.role.id !== RoleTypes.OrderPicker) {
                 res.status(403).end();
                 return;
             }
@@ -33,7 +75,7 @@ export class AdminMiddleware {
             }
             let token;
             try {
-                token = <any>jsonwebtoken.verify(authorization.split(" ")[1], "secret");
+                token = <any>jsonwebtoken.verify(tokentSpit(authorization), "secret");
             } catch (error) {
                 //If token is not valid, respond with 401 (unauthorized)
                 res.status(401).json(error);
