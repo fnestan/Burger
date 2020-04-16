@@ -47,26 +47,35 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
         res.status(400).json("Vous ne pouvez pas appliquer une promotion sur un menu et un produit")
         return;
     }
+    let allRequiredParam, elementDoesNotExist;
     if (menuId) {
-        VerificationHelper.allRequiredParam(menuId, discountPrice, res);
-        await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
-        await VerificationHelper.discountExistOnMenu(menuId, res);
+        allRequiredParam = VerificationHelper.allRequiredParam(menuId, discountPrice, res);
+        elementDoesNotExist = await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
+        const discountExistOnMenu = await VerificationHelper.discountExistOnMenu(menuId, res);
+        if (!discountExistOnMenu) {
+            return;
+        }
     }
     if (productLineId) {
-        VerificationHelper.allRequiredParam(productLineId, discountPrice, res);
-        await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
-        await VerificationHelper.discountExistOnProductLine(productLineId, res);
+        allRequiredParam = VerificationHelper.allRequiredParam(productLineId, discountPrice, res);
+        elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
+        const discountExistOnProductLine = await VerificationHelper.discountExistOnProductLine(productLineId, res);
+        if (!discountExistOnProductLine) {
+            return;
+        }
 
     }
     if (!menuId && !productLineId) {
         res.status(400).json("Vous devez choisir un menu ou une ligne de produit");
         return;
     }
-    try {
-        const discount = await DiscountController.createDiscount(+discountPrice, +menuId, +productLineId);
-        res.status(201).json(discount);
-    } catch (e) {
-        res.status(400).json(e);
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const discount = await DiscountController.createDiscount(+discountPrice, +menuId, +productLineId);
+            res.status(201).json(discount);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -85,14 +94,19 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {discountPrice} = req.body;
     const {id} = req.params;
-    VerificationHelper.allRequiredParam(discountPrice, res);
-    await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
-    try {
-        const discount = await DiscountController.updateDiscount(+id, +discountPrice);
-        res.status(200).json(discount);
-    } catch (e) {
-        res.status(400).json(e);
+    let allRequiredParam, elementDoesNotExist;
+
+    allRequiredParam = VerificationHelper.allRequiredParam(discountPrice, res);
+    elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const discount = await DiscountController.updateDiscount(+id, +discountPrice);
+            res.status(200).json(discount);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 
 });
 
@@ -107,13 +121,17 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {id} = req.params;
-    await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
-    try {
-        const discount: IMessageResponse = await DiscountController.deleteDiscount(+id);
-        res.status(discount.Code).json(discount.Message);
-    } catch (e) {
-        res.status(400).json(e);
+
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
+    if (elementDoesNotExist) {
+        try {
+            const discount: IMessageResponse = await DiscountController.deleteDiscount(+id);
+            res.status(discount.Code).json(discount.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 export default router;

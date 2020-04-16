@@ -21,15 +21,16 @@ const router = Router();
  */
 router.put('/:orderId', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder()], async (req: Request, res: Response) => {
     const {userId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+userId, res, "User");
-    await VerificationHelper.elementDoesNotExist(+req.params.orderId, res, "Order");
-    try {
-        const order = await OrderController.setResponsibleOfOrder(+req.params.orderId, +userId);
-        res.status(201).json(order);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExistUser = await VerificationHelper.elementDoesNotExist(+userId, res, "User");
+    const elementDoesNotExistOrder = await VerificationHelper.elementDoesNotExist(+req.params.orderId, res, "Order");
+    if (elementDoesNotExistUser && elementDoesNotExistOrder) {
+        try {
+            const order = await OrderController.setResponsibleOfOrder(+req.params.orderId, +userId);
+            res.status(201).json(order);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
-
 });
 /**
  * @api {post} /orders/ Request for create order

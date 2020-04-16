@@ -20,12 +20,14 @@ const router = Router();
  * @apiError  {string} unauthorize
  */
 router.get('/:productlineId', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.productlineId, res, "ProductLine");
-    try {
-        const recipes: Recipe[] = await RecipeController.getRecipe(+req.params.productlineId);
-        res.status(200).json(recipes);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.productlineId, res, "ProductLine");
+    if (elementDoesNotExist) {
+        try {
+            const recipes: Recipe[] = await RecipeController.getRecipe(+req.params.productlineId);
+            res.status(200).json(recipes);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -47,15 +49,17 @@ router.get('/:productlineId', AdminMiddleware.canTakeChargeOfOrder(), async (req
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {quantity, removable, unitId, productLineId, ingredientId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+productLineId, res, "ProductLine");
-    await VerificationHelper.elementDoesNotExist(+unitId, res, "Unit");
-    await VerificationHelper.elementDoesNotExist(+ingredientId, res, "Ingredient");
-    VerificationHelper.allRequiredParam(quantity, removable, unitId, productLineId, ingredientId, res);
-    try {
-        const Recipe = await RecipeController.createRecipeLine(+quantity, removable, +unitId, +productLineId, +ingredientId);
-        res.status(201).json(Recipe);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExistOnProductLine = await VerificationHelper.elementDoesNotExist(+productLineId, res, "ProductLine");
+    const elementDoesNotExistUnit = await VerificationHelper.elementDoesNotExist(+unitId, res, "Unit");
+    const elementDoesNotExistIngredient = await VerificationHelper.elementDoesNotExist(+ingredientId, res, "Ingredient");
+    const allRequireParams = VerificationHelper.allRequiredParam(quantity, removable, unitId, productLineId, ingredientId, res);
+    if (elementDoesNotExistOnProductLine && elementDoesNotExistIngredient && elementDoesNotExistUnit && allRequireParams) {
+        try {
+            const Recipe = await RecipeController.createRecipeLine(+quantity, removable, +unitId, +productLineId, +ingredientId);
+            res.status(201).json(Recipe);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -74,13 +78,15 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {quantity, removable} = req.body;
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
-    VerificationHelper.allRequiredParam(quantity, removable, res);
-    try {
-        const recipe = await RecipeController.updateRecipeLine(+req.params.id, quantity, removable);
-        res.status(200).json(recipe);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
+    const allRequireParams = VerificationHelper.allRequiredParam(quantity, removable, res);
+    if (allRequireParams && elementDoesNotExist) {
+        try {
+            const recipe = await RecipeController.updateRecipeLine(+req.params.id, quantity, removable);
+            res.status(200).json(recipe);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -94,13 +100,16 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
-    try {
-        const recipe: IError | ISuccess = await RecipeController.deleteRecipeLine(+req.params.id);
-        res.status(recipe.Code).json(recipe.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Recipe");
+    if (elementDoesNotExist) {
+        try {
+            const recipe: IError | ISuccess = await RecipeController.deleteRecipeLine(+req.params.id);
+            res.status(recipe.Code).json(recipe.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 export default router;

@@ -21,13 +21,15 @@ const router = Router();
  * @apiError  {string} unauthorize
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.name, req.body.typeId, res);
-    await VerificationHelper.elementDoesNotExist(req.body.typeId, res, "RefTypeProduct");
-    try {
-        const product = await ProductController.createProduct(req.body.name, req.body.typeId);
-        res.status(201).json(product);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequiredParam = VerificationHelper.allRequiredParam(req.body.name, req.body.typeId, res);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(req.body.typeId, res, "RefTypeProduct");
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const product = await ProductController.createProduct(req.body.name, req.body.typeId);
+            res.status(201).json(product);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -45,14 +47,16 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  * @apiError  {string} unauthorize
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.name, req.body.typeId, res);
-    await VerificationHelper.elementDoesNotExist(req.body.typeId, res, "RefTypeProduct");
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Product");
-    try {
-        const product = await ProductController.updateProduct(+req.params.id, req.body.name, req.body.typeId);
-        res.status(200).json(product);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequiredParam = VerificationHelper.allRequiredParam(req.body.name, req.body.typeId, res);
+    const elementDoesNotExistonType = await VerificationHelper.elementDoesNotExist(req.body.typeId, res, "RefTypeProduct");
+    const elementDoesNotExistonProduct = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Product");
+    if (allRequiredParam && elementDoesNotExistonProduct && elementDoesNotExistonType) {
+        try {
+            const product = await ProductController.updateProduct(+req.params.id, req.body.name, req.body.typeId);
+            res.status(200).json(product);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -66,12 +70,14 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.elementDoesNotExist(+req.params.id, res, "Product");
-    try {
-        const product = await ProductController.deleteProduct(+req.params.id);
-        res.status(product.Code).json(product.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = VerificationHelper.elementDoesNotExist(+req.params.id, res, "Product");
+    if (elementDoesNotExist) {
+        try {
+            const product = await ProductController.deleteProduct(+req.params.id);
+            res.status(product.Code).json(product.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 

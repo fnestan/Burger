@@ -41,13 +41,15 @@ router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) =
  * @apiError  {string} unauthorize
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.name, res);
-    try {
-        const units = await UnitController.createUnit(req.body.name);
-        res.status(201).json(units);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequireParams = VerificationHelper.allRequiredParam(req.body.name, res);
+    if (allRequireParams) {
+        try {
+            const units = await UnitController.createUnit(req.body.name);
+            res.status(201).json(units);
+        } catch (e) {
+            res.status(400).json(e);
 
+        }
     }
 });
 
@@ -64,15 +66,18 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  * @apiError  {string} unauthorize
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.name, res);
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Unit");
-    try {
-        const units = await UnitController.updateUnit(+req.params.id, req.body.name);
-        res.status(200).json(units);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequireParams = VerificationHelper.allRequiredParam(req.body.name, res);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Unit");
+    if (elementDoesNotExist && allRequireParams) {
+        try {
+            const units = await UnitController.updateUnit(+req.params.id, req.body.name);
+            res.status(200).json(units);
+        } catch (e) {
+            res.status(400).json(e);
 
+        }
     }
+
 });
 
 /**
@@ -85,13 +90,14 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Unit");
-
-    try {
-        const units: IMessageResponse = await UnitController.deleteUnit(+req.params.id);
-        res.status(units.Code).json(units.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Unit");
+    if (elementDoesNotExist) {
+        try {
+            const units: IMessageResponse = await UnitController.deleteUnit(+req.params.id);
+            res.status(units.Code).json(units.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 

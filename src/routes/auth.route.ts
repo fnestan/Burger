@@ -21,17 +21,20 @@ const router = Router();
  */
 router.post('/login', bodyParser.json(), async (req: Request, res: Response) => {
     const {email, password} = req.body;
-    VerificationHelper.allRequiredParam(email, password, res);
-    try {
-        const user = await AuthController.login(email, password);
-        if ((user as IMessageResponse).Code) {
-            res.status((user as IMessageResponse).Code).json((user as IMessageResponse).Message);
-        } else {
-            res.json(user);
+    const allRequiredParam: boolean = VerificationHelper.allRequiredParam(email, password, res);
+    if (allRequiredParam) {
+        try {
+            const user = await AuthController.login(email, password);
+            if ((user as IMessageResponse).Code) {
+                res.status((user as IMessageResponse).Code).json((user as IMessageResponse).Message);
+            } else {
+                res.json(user);
+            }
+        } catch (err) {
+            res.status(500).end();
         }
-    } catch (err) {
-        res.status(500).end();
     }
+
 });
 
 /**
@@ -51,10 +54,11 @@ router.post('/login', bodyParser.json(), async (req: Request, res: Response) => 
  */
 router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, next: NextFunction) => {
     const {firstname, email, lastname, password, passwordConfirm, roleId} = req.body;
-    VerificationHelper.allRequiredParam(firstname, email, lastname, password, passwordConfirm, roleId, res);
-    VerificationHelper.passwordCormimationGood(password, passwordConfirm, res);
-    await VerificationHelper.elementDoesNotExist(roleId, res, "Role");
-    await VerificationHelper.emailAlreadyExiest(email, res);
+    const allRequiredParam: boolean = VerificationHelper.allRequiredParam(firstname, email, lastname, password, passwordConfirm, roleId, res);
+    const passwordCormimationGood: boolean = VerificationHelper.passwordCormimationGood(password, passwordConfirm, res);
+    const elementDoesNotExist: boolean = await VerificationHelper.elementDoesNotExist(roleId, res, "Role");
+    const emailAlreadyExiest: boolean = await VerificationHelper.emailAlreadyExiest(email, res);
+    let cannotCreteUser: boolean;
     const authorization = req.headers['authorization'];
     let role;
     if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -63,17 +67,19 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
         const token = tokentSpit(req.headers['authorization']);
         const result = await userFromToken(token);
         if (result) {
-            VerificationHelper.cannotCreteUser(result, res);
+            cannotCreteUser = VerificationHelper.cannotCreteUser(result, res);
         } else {
             role = roleId;
         }
     }
-    try {
-        const user = await AuthController.signUp(firstname, lastname, email, password, role);
-        res.status(201).json(user);
-    } catch (e) {
-        res.status(400).json(e);
+    if (cannotCreteUser && allRequiredParam && passwordCormimationGood && elementDoesNotExist && emailAlreadyExiest) {
+        try {
+            const user = await AuthController.signUp(firstname, lastname, email, password, role);
+            res.status(201).json(user);
+        } catch (e) {
+            res.status(400).json(e);
 
+        }
     }
 
 });
@@ -88,7 +94,6 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
  * @apiError  {string} return error response
  */
 router.get('/logout', AdminMiddleware.isLogged(), async (req: Request, res: Response) => {
-    console.log(tokentSpit(req.headers['authorization']));
     try {
         const response = await AuthController.logout(tokentSpit(req.headers['authorization']));
         res.status(200).json(response);

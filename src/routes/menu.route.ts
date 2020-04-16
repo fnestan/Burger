@@ -43,7 +43,7 @@ router.get('/', async (req: Request, res: Response) => {
  * */
 router.get('/:id', async (req: Request, res: Response) => {
     let isAdmin = false;
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
     if (req.headers["authorization"]) {
         const token = tokentSpit(req.headers["authorization"]);
         const userFound = await userFromToken(token);
@@ -51,11 +51,13 @@ router.get('/:id', async (req: Request, res: Response) => {
             isAdmin = true;
         }
     }
-    try {
-        const menu: Menu = await MenuController.getMenuById(isAdmin, +req.params.id);
-        res.status(200).json(menu);
-    } catch (e) {
-        res.status(400).json(e);
+    if (elementDoesNotExist) {
+        try {
+            const menu: Menu = await MenuController.getMenuById(isAdmin, +req.params.id);
+            res.status(200).json(menu);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -77,16 +79,22 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {name, price, orderable, priceXl} = req.body;
     const productLineIds: number[] = req.body.productLineIds;
-    await VerificationHelper.allRequiredParam(name, price, orderable, productLineIds, priceXl, res);
+    const allRequiredParam = await VerificationHelper.allRequiredParam(name, price, orderable, productLineIds, priceXl, res);
     for (let i = 0; i < productLineIds.length; i++) {
-        await VerificationHelper.elementDoesNotExist(productLineIds[i], res, "ProductLine");
+        const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineIds[i], res, "ProductLine");
+        if (!elementDoesNotExist) {
+            return;
+        }
     }
-    try {
-        const menus = await MenuController.createMenu(name, price, orderable, productLineIds, priceXl);
-        res.status(201).json(menus);
-    } catch (e) {
-        res.status(400).json(e);
+    if (allRequiredParam) {
+        try {
+            const menus = await MenuController.createMenu(name, price, orderable, productLineIds, priceXl);
+            res.status(201).json(menus);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 /**
@@ -107,16 +115,21 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {name, price, orderable, priceXl} = req.body;
     const productLineIds: number[] = req.body.productLineIds;
-    await VerificationHelper.allRequiredParam(name, price, orderable, productLineIds, priceXl, res);
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
+    const allRequiredParam = await VerificationHelper.allRequiredParam(name, price, orderable, productLineIds, priceXl, res);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
     for (let i = 0; i < productLineIds.length; i++) {
-        await VerificationHelper.elementDoesNotExist(productLineIds[i], res, "ProductLine");
+        const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineIds[i], res, "ProductLine");
+        if (!elementDoesNotExist) {
+            return;
+        }
     }
-    try {
-        const menus = await MenuController.updateMenu(+req.params.id, name, price, orderable, productLineIds, priceXl);
-        res.status(200).json(menus);
-    } catch (e) {
-        res.status(400).json(e);
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const menus = await MenuController.updateMenu(+req.params.id, name, price, orderable, productLineIds, priceXl);
+            res.status(200).json(menus);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -130,14 +143,16 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
-    try {
-        const menu: IMessageResponse = await MenuController.deleteMenu(+req.params.id);
-        res.status(menu.Code).json(menu.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExistMenu = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
+    if (elementDoesNotExistMenu) {
+        try {
+            const menu: IMessageResponse = await MenuController.deleteMenu(+req.params.id);
+            res.status(menu.Code).json(menu.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 /**
@@ -150,14 +165,17 @@ router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Res
  * @apiSuccess {string} return success
  */
 router.delete('/:menuId/:productLineId', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
-    try {
-        const menu = await MenuController.deleteProductLineMenu(+req.params.menuId, +req.params.productLineId);
-        res.status(200).json(menu);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExistMenu = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Menu");
+    const elementDoesNotExistProductLine = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
+    if (elementDoesNotExistMenu && elementDoesNotExistProductLine) {
+        try {
+            const menu = await MenuController.deleteProductLineMenu(+req.params.menuId, +req.params.productLineId);
+            res.status(200).json(menu);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 export default router;

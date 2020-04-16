@@ -2,6 +2,7 @@ import {Equal, getRepository, Not} from "typeorm";
 import {Role} from "../entities/Role";
 import {User} from "../entities/User";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
+import {Forward} from "../entities/Forward";
 
 export class UserController {
 
@@ -22,11 +23,13 @@ export class UserController {
         });
     }
 
-    static async updateUser(id: number, user: User): Promise<User> {
-        return await getRepository(User).save({
+    static async updateUser(user: User): Promise<User> {
+        /*return await getRepository(User).save({
             ...await getRepository(User).findOne(id),
             ...user
-        });
+        });*/
+        const resUser = await getRepository(User).preload(user);
+        return await getRepository(User).save(resUser);
     }
 
     static async deleteUser(id: number): Promise<IMessageResponse> {

@@ -25,7 +25,7 @@ export class OrderController {
                                  menuId: number, xl: boolean,
                                  productLine: [{ productLineId: number, ingredienttoremove: [] }]
                              }],
-                             productLineIds?: [{ productLineId: number, ingredienttoremove: number[] }] ): Promise<Order> {
+                             productLineIds?: [{ productLineId: number, ingredienttoremove: number[] }]): Promise<Order> {
         let orderCustomer = null;
         let price = 0;
         if (orderCustomerId) {
@@ -45,7 +45,7 @@ export class OrderController {
                 let stringRemoveIngredients: string = null;
                 let menuPrice = 0;
                 if (menuIds[i].productLine) {
-                    stringRemoveIngredients = await VerificationHelper.stringforRemoveIngredient(menuIds[i].productLine);
+                    stringRemoveIngredients = await VerificationHelper.stringforRemoveIngredientofmenu(menuIds[i].productLine);
                 }
                 let discount = await getRepository(Discount).findOne({menu: menu});
                 if (discount) {
@@ -77,7 +77,7 @@ export class OrderController {
             for (let i = 0; i < productLineIds.length; i++) {
                 const productLine = await getRepository(ProductLine).findOne({id: productLineIds[i].productLineId});
                 let lineOrderPrice = 0;
-                const stringRemoveIngredients: string = await VerificationHelper.test(productLine,productLineIds[i].ingredienttoremove);
+                const stringRemoveIngredients: string = await VerificationHelper.stringforRemoveIngredientofProductLine(productLine, productLineIds[i].ingredienttoremove);
 
                 let discount = await getRepository(Discount).findOne({productLine: productLine});
                 if (discount) {

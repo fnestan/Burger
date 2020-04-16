@@ -10,10 +10,9 @@ import {getRepository} from "typeorm";
 import {ProductLine} from "../../entities/ProductLine";
 import {Recipe} from "../../entities/Recipe";
 import {Ingredient} from "../../entities/Ingredient";
-import {Product} from "../../entities/Product";
 
 export class VerificationHelper {
-    static async emailAlreadyExiest(email: string, res: Response) {
+    static async emailAlreadyExiest(email: string, res: Response): Promise<boolean> {
         try {
             const user = await userFromEmail(email);
             if (user) {
@@ -22,36 +21,39 @@ export class VerificationHelper {
                     Message: "Cet email existe déjà"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
             console.log(e)
         }
+        return true;
     }
 
-    static passwordCormimationGood(password: string, passwordConfirm: string, res: Response) {
+    static passwordCormimationGood(password: string, passwordConfirm: string, res: Response): boolean {
         if (password !== passwordConfirm) {
             let response: IMessageResponse = {
                 Code: 400,
                 Message: "le mot de passe de doit être similaire à celui de la confirmation"
             };
             res.status(response.Code).json(response.Message);
-            return;
+            return false;
         }
+        return true
     }
 
-    static cannotCreteUser(user: User, res: Response) {
+    static cannotCreteUser(user: User, res: Response): boolean {
         if (user.role.id === RoleTypes.Customer || user.role.id === RoleTypes.OrderPicker) {
             let response: IMessageResponse = {
                 Code: 403,
                 Message: "Vous ne pouvez pas créer de nouvel utilisateur"
             };
             res.status(response.Code).json(response.Message);
-            return;
+            return false;
         }
+        return true;
     }
 
-    static allRequiredParam(...args: any) {
+    static allRequiredParam(...args: any): boolean {
         for (let i: number = 0; i < args.length - 1; i++) {
             if (!args[i] && typeof args[i] !== "boolean") {
                 let response: IMessageResponse = {
@@ -60,12 +62,13 @@ export class VerificationHelper {
                 };
                 const res: Response = args[args.length - 1];
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         }
+        return true;
     }
 
-    static async discountExistOnMenu(menuId: number, res: Response) {
+    static async discountExistOnMenu(menuId: number, res: Response): Promise<boolean> {
         try {
             const discount = await discoutFromMenuId(menuId);
             if (discount) {
@@ -74,14 +77,15 @@ export class VerificationHelper {
                     Message: "une promo existe déjà sur ce menu"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
             console.log(e);
         }
+        return true;
     }
 
-    static async discountExistOnProductLine(productLineId: number, res: Response) {
+    static async discountExistOnProductLine(productLineId: number, res: Response): Promise<boolean> {
         try {
             const discount = await discoutFromProductLineId(productLineId);
             if (discount) {
@@ -90,15 +94,16 @@ export class VerificationHelper {
                     Message: "une promo existe déjà sur cette ligne de produit"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
             console.log(e);
         }
+        return true;
     }
 
 
-    static async elementDoesNotExist(idElement: number, res: Response, typelelment: string) {
+    static async elementDoesNotExist(idElement: number, res: Response, typelelment: string): Promise<boolean> {
         try {
             const element = await entityFromId(idElement, typelelment);
             if (!element) {
@@ -107,14 +112,15 @@ export class VerificationHelper {
                     Message: "Ce(Cette) " + typelelment + " n'existe pas"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
-            e;
+            console.log(e);
         }
+        return true;
     }
 
-    static async forwardExistOnMenu(menuId: number, res: Response) {
+    static async forwardExistOnMenu(menuId: number, res: Response): Promise<boolean> {
         try {
             const discount = await forwardFromMenuId(menuId);
             if (discount) {
@@ -123,14 +129,15 @@ export class VerificationHelper {
                     Message: "une  mise en avant existe déjà sur ce menu"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
             console.log(e);
         }
+        return true;
     }
 
-    static async forwardExistOnProductLine(productLineId: number, res: Response) {
+    static async forwardExistOnProductLine(productLineId: number, res: Response): Promise<boolean> {
         try {
             const discount = await forwardFromProductLineId(productLineId);
             if (discount) {
@@ -139,15 +146,15 @@ export class VerificationHelper {
                     Message: "une mise en avant existe déjà sur cette ligne de produit"
                 };
                 res.status(response.Code).json(response.Message);
-                return;
+                return false;
             }
         } catch (e) {
             console.log(e);
         }
+        return true;
     }
 
-    //static async stringforRemoveIngredient(pl:ProductLine,idIngredientToRemove[]): Promise<string>
-    static async stringforRemoveIngredient(productLine: [{ productLineId: number, ingredienttoremove: [] }]): Promise<string> {
+    static async stringforRemoveIngredientofmenu(productLine: [{ productLineId: number, ingredienttoremove: [] }]): Promise<string> {
         let response: string = "";
         let res: Response;
         for (let i = 0; i < productLine.length; i++) {
@@ -174,7 +181,7 @@ export class VerificationHelper {
         return response;
     }
 
-    static async test(pl: ProductLine, idIngredientToRemove: number[]): Promise<string> {
+    static async stringforRemoveIngredientofProductLine(pl: ProductLine, idIngredientToRemove: number[]): Promise<string> {
         let response: string = "";
         let res: Response;
         for (let j = 0; j < idIngredientToRemove.length; j++) {
