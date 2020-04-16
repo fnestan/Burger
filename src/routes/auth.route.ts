@@ -6,6 +6,7 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 import {RoleTypes} from "../enums/RoleTypes";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
+import {User} from "../entities/User";
 
 const router = Router();
 /**
@@ -75,18 +76,15 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
     }
     if (cannotCreteUser && allRequiredParam && passwordCormimationGood && elementDoesNotExist && emailAlreadyExiest) {
         try {
-            const user = await AuthController.signUp(firstname, lastname, email, password, role);
-            res.status(201).json(user);
+            const user: User | IMessageResponse = await AuthController.signUp(firstname, lastname, email, password, role);
+            if ((user as IMessageResponse).Code) {
+                res.status((user as IMessageResponse).Code).json((user as IMessageResponse).Message);
+            } else {
+                res.status(201).json(user);
+            }
         } catch (e) {
             res.status(400).json(e);
-
         }
-    } else {
-        console.log(cannotCreteUser);
-        console.log(allRequiredParam);
-        console.log(passwordCormimationGood);
-        console.log(elementDoesNotExist);
-        console.log(emailAlreadyExiest);
     }
 });
 

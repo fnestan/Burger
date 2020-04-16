@@ -1,7 +1,7 @@
 import {User} from "../entities/User";
-import {getConnectionManager, getRepository, Repository} from "typeorm";
-import bcrypt, {compare} from "bcrypt";
-import {validate, ValidationError} from "class-validator";
+import {getRepository} from "typeorm";
+import bcrypt from "bcrypt";
+import {validate} from "class-validator";
 import jsonwebtoken from "jsonwebtoken";
 import {Role} from "../entities/Role";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
@@ -9,7 +9,7 @@ import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 
 export class AuthController {
 
-    static async signUp(firstname: string, lastname: string, email: string, password: string, roleId: number): Promise<User | ValidationError[]> {
+    static async signUp(firstname: string, lastname: string, email: string, password: string, roleId: number): Promise<User | IMessageResponse> {
         const role = await getRepository(Role).findOne({id: roleId});
         const user = await getRepository(User).create({
             firstname: firstname,
@@ -22,7 +22,10 @@ export class AuthController {
         if (errors.length === 0) {
             return getRepository(User).save(user);
         } else {
-            return errors;
+            return {
+                Message: "L'email est invalide",
+                Code: 400
+            };
         }
 
     }
