@@ -1,0 +1,21 @@
+{
+  "type": "postgres",
+  "host": "192.168.99.101",
+  "port": 5050,
+  "username": "admin",
+  "password": "admin",
+  "database": "burger",
+  "schema": "burger",
+  "synchronize": true,
+  "logging": true,
+  "entities": [
+    "dist/entities/*.js"
+  ],
+  "migrations": [
+    "src/migration/**/*.ts"
+  ],
+  "cli": {
+    "entitiesDir": "src/entities",
+    "migrationsDir": "src/migration"
+  }
+}
