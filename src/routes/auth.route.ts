@@ -63,6 +63,7 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
     let role;
     if (!authorization || !authorization.startsWith('Bearer ')) {
         role = RoleTypes.Customer;
+        cannotCreteUser = true;
     } else {
         const token = tokentSpit(req.headers['authorization']);
         const result = await userFromToken(token);
@@ -80,8 +81,13 @@ router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, ne
             res.status(400).json(e);
 
         }
+    } else {
+        console.log(cannotCreteUser);
+        console.log(allRequiredParam);
+        console.log(passwordCormimationGood);
+        console.log(elementDoesNotExist);
+        console.log(emailAlreadyExiest);
     }
-
 });
 
 /**
