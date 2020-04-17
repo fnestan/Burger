@@ -20,7 +20,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "Cet email existe déjà"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
@@ -35,7 +39,11 @@ export class VerificationHelper {
                 Code: 400,
                 Message: "le mot de passe de doit être similaire à celui de la confirmation"
             };
-            res.status(response.Code).json(response.Message);
+            try {
+                res.status(response.Code).json(response.Message);
+            } catch (e) {
+                console.log(e);
+            }
             return false;
         }
         return true
@@ -47,7 +55,11 @@ export class VerificationHelper {
                 Code: 403,
                 Message: "Vous ne pouvez pas créer de nouvel utilisateur"
             };
-            res.status(response.Code).json(response.Message);
+            try {
+                res.status(response.Code).json(response.Message);
+            } catch (e) {
+                console.log(e);
+            }
             return false;
         }
         return true;
@@ -61,8 +73,14 @@ export class VerificationHelper {
                     Message: "Certains Champ sont obligatoires"
                 };
                 const res: Response = args[args.length - 1];
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
+
                 return false;
+
             }
         }
         return true;
@@ -76,7 +94,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "une promo existe déjà sur ce menu"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
@@ -93,7 +115,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "une promo existe déjà sur cette ligne de produit"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
@@ -111,7 +137,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "Ce(Cette) " + typelelment + " n'existe pas"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
@@ -128,7 +158,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "une  mise en avant existe déjà sur ce menu"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
@@ -145,7 +179,11 @@ export class VerificationHelper {
                     Code: 400,
                     Message: "une mise en avant existe déjà sur cette ligne de produit"
                 };
-                res.status(response.Code).json(response.Message);
+                try {
+                    res.status(response.Code).json(response.Message);
+                } catch (e) {
+                    console.log(e);
+                }
                 return false;
             }
         } catch (e) {
