@@ -13,7 +13,7 @@ import {MailSender} from "../helpers/mail/MailSender";
 const router = Router();
 
 /**
- * @api {get} /users/:id Request for get user
+ * @api {get} /users/byId/:id Request for get user
  * @apiName get user
  * @apiGroup Users
  * @apiHeader {String} token
@@ -66,7 +66,7 @@ router.get('/:role', AdminMiddleware.isAdmin, async (req: Request, res: Response
 });
 
 /**
- * @api {put} /users/:id  Request for update user
+ * @api {put} /users/update/:id  Request for update user
  * @apiName update User
  * @apiGroup Users
  * @apiHeader {String} token admin
@@ -122,7 +122,7 @@ router.put('/update/:id', [AdminMiddleware.isLogged(), bodyParser.json()], async
 });
 
 /**
- * @api {put} /users/:id  Request for update user password
+ * @api {put} /users/password/:id  Request for update user password
  * @apiName update User
  * @apiGroup Users
  * @apiHeader {String} token admin

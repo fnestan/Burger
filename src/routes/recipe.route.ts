@@ -10,7 +10,7 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 const router = Router();
 
 /**
- * @api {get} /recipes/:productlineId Request for get recipes by productline id
+ * @api {get} /recipes/:productlineId  Request for get recipes by productline id
  * @apiName get recipes
  * @apiGroup Recipes
  * @apiHeader {String} token admin

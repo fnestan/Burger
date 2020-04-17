@@ -35,9 +35,8 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 /**
- * @apiName get ingredients
+ * @apiName {get} /menus/:id request for one menu
  * @apiGroup Menus
- * @apiPermission role admin
  *
  * @apiSuccess {Menus} return Menu by id param
  * */
