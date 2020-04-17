@@ -8,7 +8,6 @@ import {User} from "../entities/User";
 import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 import bcrypt from "bcrypt";
-import {MailSender} from "../helpers/mail/MailSender";
 
 const router = Router();
 
@@ -163,8 +162,16 @@ router.put("/update/password/:id", bodyParser.json(), AdminMiddleware.isLogged()
         return;
     }
 });
-/*
-pas encore terminé
+
+/**
+ * @api {post} /users/passwordForgot Request for password forgot
+ * @apiName password forgot
+ * @apiGroup Users
+ *
+ * @apiParam {string} mail of user
+ *
+ * @apiSuccess {string} return Un email vous a été envoyer.
+ * @apiError  {string} Ce mail ne correspond à aucun de nos mail
  */
 router.post("/passwordForgot", bodyParser.json(), async (req: Request, res: Response) => {
     const user = await userFromEmail(req.body.email);
@@ -172,11 +179,31 @@ router.post("/passwordForgot", bodyParser.json(), async (req: Request, res: Resp
         res.status(400).json("Ce mail ne correspond à aucun de nos mail");
         return;
     }
-    await MailSender.sendMail(req.body.email);
-    res.status(200).json("Un mail vous a été envoyer");
+    const response = await UserController.passwordForgot(user);
+    res.status(response.Code).json(response.Message);
 
 });
 
+/**
+ * @api {post} /users/resetPassword/:road  Request for reset password
+ * @apiName reset password
+ * @apiGroup Users
+ *
+ * @apiParam {password} password of user
+ * @apiParam {PasswordConfirm} PasswordConfirm of user
+ *
+ * @apiSuccess {string} return Votre mot de passe à bien été modifier
+ */
+router.post("/resetPassword/:road", [bodyParser.json(), AdminMiddleware.roadIsAccessible()], async (req: Request, res: Response) => {
+    const road = req.params.road;
+    const password = req.body.password;
+    const passwordConfirm = req.body.passwordConfirm;
+    const passwordIsgood = VerificationHelper.passwordCormimationGood(password, passwordConfirm, res);
+    if (passwordIsgood) {
+        const response = await UserController.resetPassword(road, password);
+        res.status(response.Code).json(response.Message);
+    }
+});
 
 /**
  * @api {delete} /users/:id  Request for delete user

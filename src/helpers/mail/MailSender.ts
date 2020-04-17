@@ -1,9 +1,8 @@
 import nodemailer from "nodemailer";
-import randomstring from "randomstring";
 
 export class MailSender {
 
-    static async sendMail(email: string) {
+    static async sendMail(email: string, chaine: string) {
         const transporter = nodemailer.createTransport({
             service: "Gmail",
             auth: {
@@ -15,14 +14,10 @@ export class MailSender {
                 rejectUnauthorized: false
             }
         });
-        const chaine = randomstring.generate({
-            length: 50,
-            charset: 'alphabetic'
-        });
-        const url = "http://localhost:3000/users/" + chaine + "/resetPassword";
+        const url = "http://localhost:3000/users/resetPassword/" + chaine;
         const mailOptions = {
             from: 'no-reply@message.com',
-            to: 'fnestan@myges.fr',//user.email,
+            to: email,//user.email,
             subject: 'Thanks to your oder',
             text: 'Rendez-vous sur cette url pour reinitialiser votre mdp: ' + url,
         };

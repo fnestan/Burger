@@ -1,8 +1,9 @@
-import {AuthController} from "../controllers/AuthController";
 import {tokentSpit, userFromToken} from "../helpers/queryHelpers/userQueryHelper";
-import {Request, Response, NextFunction} from "express";
+import {NextFunction, Request, Response} from "express";
 import {RoleTypes} from "../enums/RoleTypes";
 import jsonwebtoken from "jsonwebtoken";
+import {getRepository} from "typeorm";
+import {ResetPasswordUrl} from "../entities/ResetPasswordUrl";
 
 
 export class AdminMiddleware {
@@ -88,6 +89,24 @@ export class AdminMiddleware {
                 return;
             }
             res.locals.isLogged = true;
+            next();
+        };
+
+    }
+
+    static roadIsAccessible() {
+        return async (req: Request, res: Response, next: NextFunction) => {
+            const road = req.params.road;
+            const url = await getRepository(ResetPasswordUrl).findOne({
+                where: {
+                    url: road,
+                    close: false
+                }
+            });
+            if (!url){
+                res.status(400).json("Cette url n'existe pas ou est obsolete");
+                return;
+            }
             next();
         };
 
