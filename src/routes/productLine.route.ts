@@ -6,6 +6,17 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 const router = Router();
+/**
+ *
+ */
+router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) => {
+    try {
+        const pl = await ProductLineController.getAllProductLines();
+        res.status(200).json(pl);
+    }catch (e) {
+        console.log(e);
+    }
+});
 
 /**
  * @api {post} /lines/ Request for create productLines

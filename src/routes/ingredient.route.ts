@@ -77,25 +77,5 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
     }
 });
 
-/**
- * @api {delete} /ingredients/:id  Request for delete ingredients
- * @apiName delete ingredients
- * @apiGroup Ingredients
- * @apiHeader {String} token admin
- * @apiPermission role admin
- *
- * @apiSuccess {string} return success
- */
-router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    const allRequiredParam = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Ingredient");
-    if (allRequiredParam) {
-        try {
-            const ingredients = await IngredientController.deleteIngredient(+req.params.id);
-            res.status(ingredients.Code).json(ingredients.Message);
-        } catch (e) {
-            res.status(400).json(e);
-        }
-    }
-});
 
 export default router;

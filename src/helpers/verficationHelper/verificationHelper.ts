@@ -152,8 +152,8 @@ export class VerificationHelper {
 
     static async forwardExistOnMenu(menuId: number, res: Response): Promise<boolean> {
         try {
-            const discount = await forwardFromMenuId(menuId);
-            if (discount) {
+            const forward = await forwardFromMenuId(menuId);
+            if (forward) {
                 let response: IMessageResponse = {
                     Code: 400,
                     Message: "une  mise en avant existe déjà sur ce menu"
@@ -163,18 +163,19 @@ export class VerificationHelper {
                 } catch (e) {
                     console.log(e);
                 }
-                return false;
+                return true;
             }
         } catch (e) {
             console.log(e);
         }
-        return true;
+        return false;
     }
 
     static async forwardExistOnProductLine(productLineId: number, res: Response): Promise<boolean> {
         try {
-            const discount = await forwardFromProductLineId(productLineId);
-            if (discount) {
+            const forward = await forwardFromProductLineId(productLineId);
+            console.log(productLineId);
+            if (forward) {
                 let response: IMessageResponse = {
                     Code: 400,
                     Message: "une mise en avant existe déjà sur cette ligne de produit"
@@ -184,12 +185,12 @@ export class VerificationHelper {
                 } catch (e) {
                     console.log(e);
                 }
-                return false;
+                return true;
             }
         } catch (e) {
             console.log(e);
         }
-        return true;
+        return false;
     }
 
     static async stringforRemoveIngredientofmenu(productLine: [{ productLineId: number, ingredienttoremove: [] }]): Promise<string> {

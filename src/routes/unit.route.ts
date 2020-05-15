@@ -18,7 +18,7 @@ const router = Router();
  * @apiSuccess {Units} return list of Units
  * @apiError  {string} unauthorize
  */
-router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
         const units: Unit[] = await UnitController.getAllUnits();
         res.status(200).json(units);

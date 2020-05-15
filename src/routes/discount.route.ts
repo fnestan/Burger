@@ -18,7 +18,7 @@ const router = Router();
  * @apiSuccess {Discount} return list of discount
  * @apiError  {string} unauthorize
  */
-router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
         const discounts: Discount[] = await DiscountController.getAllDiscount();
         res.status(200).json(discounts);
@@ -92,16 +92,16 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  * @apiError  {string} unauthorize
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    const {discountPrice} = req.body;
+    const {discount} = req.body;
     const {id} = req.params;
     let allRequiredParam, elementDoesNotExist;
 
-    allRequiredParam = VerificationHelper.allRequiredParam(discountPrice, res);
+    allRequiredParam = VerificationHelper.allRequiredParam(discount, res);
     elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
     if (allRequiredParam && elementDoesNotExist) {
         try {
-            const discount = await DiscountController.updateDiscount(+id, +discountPrice);
-            res.status(200).json(discount);
+            const d = await DiscountController.updateDiscount(+id, +discount);
+            res.status(200).json(d);
         } catch (e) {
             res.status(400).json(e);
         }

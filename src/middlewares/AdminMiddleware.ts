@@ -31,6 +31,7 @@ export class AdminMiddleware {
     static canTakeChargeOfOrder() {
         return async (req: Request, res: Response, next: NextFunction) => {
             const authorization = req.headers['authorization'];
+
             let user;
             if (authorization) {
                 user = await userFromToken(tokentSpit(authorization));
@@ -103,7 +104,7 @@ export class AdminMiddleware {
                     close: false
                 }
             });
-            if (!url){
+            if (!url) {
                 res.status(400).json("Cette url n'existe pas ou est obsolete");
                 return;
             }

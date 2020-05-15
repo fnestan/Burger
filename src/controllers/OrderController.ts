@@ -3,18 +3,18 @@ import {Menu} from "../entities/Menu";
 import {getRepository} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
 import {Discount} from "../entities/Discount";
-import {User} from "../entities/User";
 import {userFromToken} from "../helpers/queryHelpers/userQueryHelper";
 import {MenuOrder} from "../entities/MenuOrder";
 import {VerificationHelper} from "../helpers/verficationHelper/verificationHelper";
 import {ProductLineOrder} from "../entities/ProductLineOrder";
 import {PdfGen} from "../helpers/pdf/PdfGen";
+import get = Reflect.get;
 
 export class OrderController {
 
-    static async setResponsibleOfOrder(orderId: number, userId: number): Promise<Order> {
+    static async setResponsibleOfOrder(orderId: number, token: string): Promise<Order> {
         const order = await getRepository(Order).findOne(orderId)
-        const user = await getRepository(User).findOne(userId);
+        const user = await userFromToken(token);
         order.inChargeOfOrder = user;
         return await getRepository(Order).save(order);
     }
@@ -35,6 +35,10 @@ export class OrderController {
             orderNum: Math.floor(Math.random() * Math.floor(1000000)),
             orderCustomer: orderCustomer,
             price: price,
+            ispaid: false,
+            dateOrder: new Date(),
+            isPick: false,
+            isReady: false,
             menuOrders: [],
             productLineOrders: []
         });
@@ -107,5 +111,73 @@ export class OrderController {
     static async getCustomerOrders(token: string) {
         const user = await userFromToken(token);
         return await getRepository(Order).find({where: {orderCustomer: user}});
+    }
+
+    static async orderIsReady(token: string, id: number) {
+        const user = await userFromToken(token);
+        const order = await getRepository(Order).findOne(id);
+        console.log(user.id);
+        console.log(order);
+        if (user && order.inChargeOfOrder.id == user.id) {
+            order.isReady = true;
+            return await getRepository(Order).save(order);
+        }
+    }
+
+    static async getMyOrderToTreated(token: string) {
+        console.log(token);
+        const user = await userFromToken(token);
+        return await getRepository(Order).find({
+            where: {
+                isReady: false,
+                inChargeOfOrder: user,
+                ispaid: true
+            }
+        });
+
+    }
+
+    static async getNonChargerOrders() {
+        return await getRepository(Order).find({
+            where: {
+                inChargeOfOrder: null,
+                ispaid: true
+            }
+        });
+    }
+
+
+    static async getNonPaidOrders() {
+        return await getRepository(Order).find({
+            where: {
+                ispaid: false,
+            }
+        });
+    }
+
+    static async getReadyOrders() {
+        return await getRepository(Order).find({
+            where: {
+                ispaid: true,
+                isPick: false,
+                isReady: true
+            }
+        });
+    }
+
+    static async orderIsPick(id: number) {
+        const order = await getRepository(Order).findOne(id);
+        console.log(order)
+        if (order.ispaid && order.isReady) {
+            order.isPick = true;
+            return await getRepository(Order).save(order);
+        }
+        return {message: "Cette commande n'a pas été payée"};
+    }
+
+    static async orderIsPaid(id: number) {
+        const order = await getRepository(Order).findOne(id);
+        order.ispaid = true;
+        return await getRepository(Order).save(order);
     }
 }

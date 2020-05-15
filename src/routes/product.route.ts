@@ -7,6 +7,11 @@ import {RefTypeProduct} from "../entities/RefTypeProduct";
 
 const router = Router();
 
+router.get('/', async (req: Request, res: Response) => {
+    const products = await  ProductController.getAllProduct();
+    res.status(200).json(products);
+});
+
 /**
  * @api {post} /products/ Request for create product
  * @apiName create product

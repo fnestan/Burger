@@ -11,11 +11,11 @@ export class Forward {
     @Column()
     description: string;
 
-    @OneToOne(type => Menu, {eager: true})
+    @OneToOne(type => Menu, {eager: true, onDelete: "CASCADE"})
     @JoinColumn()
     menu: Menu;
 
-    @OneToOne(type => ProductLine, {eager: true})
+    @OneToOne(type => ProductLine, line => line.forward, {eager: true, onDelete: "CASCADE"})
     @JoinColumn()
     prductline: ProductLine;
 }

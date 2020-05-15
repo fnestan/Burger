@@ -47,7 +47,7 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
         allRequiredParam = VerificationHelper.allRequiredParam(menuId, description, res);
         elementDoesNotExist = await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
         const forwardExistOnMenu = await VerificationHelper.forwardExistOnMenu(menuId, res);
-        if (!forwardExistOnMenu) {
+        if (forwardExistOnMenu) {
             return;
         }
     }
@@ -55,7 +55,7 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
         allRequiredParam = VerificationHelper.allRequiredParam(productLineId, description, res);
         elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
         const forwardExistOnProductLine = await VerificationHelper.forwardExistOnProductLine(productLineId, res);
-        if (!forwardExistOnProductLine) {
+        if (forwardExistOnProductLine) {
             return;
         }
     }

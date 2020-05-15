@@ -12,7 +12,7 @@ export class MenuOrder {
     @ManyToOne(type => Order, order => order.menuOrders)
     order: Order;
 
-    @ManyToOne(type => Menu, menu => menu.menuOrders)
+    @ManyToOne(type => Menu, menu => menu.menuOrders, {eager:true})
     menu: Menu;
 
     @Column()

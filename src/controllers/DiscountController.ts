@@ -1,17 +1,32 @@
 import {ProductLine} from "../entities/ProductLine";
-import {getRepository} from "typeorm";
+import {createQueryBuilder, getRepository} from "typeorm";
 import {Discount} from "../entities/Discount";
 import {Menu} from "../entities/Menu";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
+import {Product} from "../entities/Product";
 
 export class DiscountController {
     static async getAllDiscount(): Promise<Discount[]> {
-        return await getRepository(Discount).find();
+        const discounts =  await getRepository(Discount).find();
+        for (let i = 0; i < discounts.length; i++) {
+            if (discounts[i].productLine) {
+                let id = discounts[i].productLine.id;
+                const prd = await createQueryBuilder('Product')
+                    .leftJoinAndSelect(
+                        'Product.productLines',
+                        'productLines')
+                    .where('productLines.id = :id', {id})
+                    .getOne();
+                (prd as Product).productLines = [];
+                discounts[i].productLine.product = prd;
+            }
+
+        }
+        return discounts;
     }
 
     static async createDiscount(discountPrice: number, menuId?: number, productLineId?: number): Promise<Discount> {
         let menu, productLine = null;
-        console.log(productLineId);
         // TODO: Checker si le menu ou le produit existe et retourner un message
         if (menuId) {
             menu = await getRepository(Menu).findOne({where: {id: menuId}});

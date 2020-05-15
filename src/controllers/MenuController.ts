@@ -1,7 +1,8 @@
-import {getRepository} from "typeorm";
+import {createQueryBuilder, Equal, getRepository, In} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
 import {Menu} from "../entities/Menu";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
+import {Product} from "../entities/Product";
 
 export class MenuController {
 
@@ -20,12 +21,25 @@ export class MenuController {
         if (isAdmin) {
             return await getRepository(Menu).findOne(idMenu);
         }
-        return await getRepository(Menu).findOne({
+        const menu = await getRepository(Menu).findOne({
             where: {
                 id: idMenu,
                 orderable: true
             }
         });
+
+        for (let i = 0; i < menu.productLines.length; i++) {
+            let id = menu.productLines[i].id;
+            const prd = await createQueryBuilder('Product')
+                .leftJoinAndSelect(
+                    'Product.productLines',
+                    'productLines')
+                .where('productLines.id = :id', {id})
+                .getOne();
+            (prd as Product ).productLines = [];
+            menu.productLines[i].product = prd;
+        }
+        return menu;
     }
 
 
@@ -52,7 +66,6 @@ export class MenuController {
             priceXl: priceXl
         };
         const resMenu = await getRepository(Menu).preload(menu);
-        console.log(id);
         return await getRepository(Menu).save(resMenu);
     }
 
@@ -68,6 +81,13 @@ export class MenuController {
         const productLine = await getRepository(ProductLine).findOne(ProductLineId);
         const menu = await getRepository(Menu).findOne(MenuId);
         menu.productLines = menu.productLines.filter(productLineAll => productLineAll.id !== productLine.id);
+        return await getRepository(Menu).save(menu);
+    }
+
+    static async addProductLineMenu(MenuId: number, ProductLineId: number): Promise<Menu> {
+        const productLine = await getRepository(ProductLine).findOne(ProductLineId);
+        const menu = await getRepository(Menu).findOne(MenuId);
+        menu.productLines.push(productLine);
         return await getRepository(Menu).save(menu);
     }
 }

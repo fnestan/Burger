@@ -25,6 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
             isAdmin = true;
         }
     }
+
     try {
         const refTypes: RefTypeProduct[] = await TypesController.getAllRefTypeProduct(isAdmin);
         res.status(200).json(refTypes);
