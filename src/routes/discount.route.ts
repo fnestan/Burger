@@ -50,7 +50,15 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
     let allRequiredParam, elementDoesNotExist;
     if (menuId) {
         allRequiredParam = VerificationHelper.allRequiredParam(menuId, discountPrice, res);
+        if (!allRequiredParam) {
+            return;
+        }
+
         elementDoesNotExist = await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
+        if (!elementDoesNotExist) {
+            return;
+        }
+
         const discountExistOnMenu = await VerificationHelper.discountExistOnMenu(menuId, res);
         if (!discountExistOnMenu) {
             return;
@@ -58,7 +66,13 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
     }
     if (productLineId) {
         allRequiredParam = VerificationHelper.allRequiredParam(productLineId, discountPrice, res);
+        if (!allRequiredParam) {
+            return;
+        }
         elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
+        if (!elementDoesNotExist) {
+            return;
+        }
         const discountExistOnProductLine = await VerificationHelper.discountExistOnProductLine(productLineId, res);
         if (!discountExistOnProductLine) {
             return;
@@ -69,13 +83,11 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
         res.status(400).json("Vous devez choisir un menu ou une ligne de produit");
         return;
     }
-    if (allRequiredParam && elementDoesNotExist) {
-        try {
-            const discount = await DiscountController.createDiscount(+discountPrice, +menuId, +productLineId);
-            res.status(201).json(discount);
-        } catch (e) {
-            res.status(400).json(e);
-        }
+    try {
+        const discount = await DiscountController.createDiscount(+discountPrice, +menuId, +productLineId);
+        res.status(201).json(discount);
+    } catch (e) {
+        res.status(400).json(e);
     }
 });
 
@@ -97,18 +109,22 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
     let allRequiredParam, elementDoesNotExist;
 
     allRequiredParam = VerificationHelper.allRequiredParam(discount, res);
-    elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
-    if (allRequiredParam && elementDoesNotExist) {
-        try {
-            const d = await DiscountController.updateDiscount(+id, +discount);
-            res.status(200).json(d);
-        } catch (e) {
-            res.status(400).json(e);
-        }
+    if (!allRequiredParam) {
+        return;
     }
 
-
-});
+    elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+id, res, "Discount");
+    if (!elementDoesNotExist) {
+        return;
+    }
+    try {
+        const d = await DiscountController.updateDiscount(+id, +discount);
+        res.status(200).json(d);
+    } catch (e) {
+        res.status(400).json(e);
+    }
+})
+;
 
 /**
  * @api {delete} /discounts/:id  Request for delete discount

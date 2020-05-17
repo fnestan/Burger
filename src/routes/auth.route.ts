@@ -54,37 +54,49 @@ router.post('/login', bodyParser.json(), async (req: Request, res: Response) => 
  * @apiError  {string} return error response
  */
 router.post('/signUp', bodyParser.json(), async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     const {firstname, email, lastname, password, passwordConfirm, roleId} = req.body;
     const allRequiredParam: boolean = VerificationHelper.allRequiredParam(firstname, email, lastname, password, passwordConfirm, roleId, res);
+    if (!allRequiredParam) {
+        return;
+    }
     const passwordCormimationGood: boolean = VerificationHelper.passwordCormimationGood(password, passwordConfirm, res);
+    if (!passwordCormimationGood) {
+        return;
+    }
     const elementDoesNotExist: boolean = await VerificationHelper.elementDoesNotExist(roleId, res, "Role");
+
+    if (!elementDoesNotExist) {
+        return;
+    }
     const emailAlreadyExiest: boolean = await VerificationHelper.emailAlreadyExiest(email, res);
-    let cannotCreteUser: boolean;
+    if (!emailAlreadyExiest) {
+        return;
+    }
     const authorization = req.headers['authorization'];
     let role;
     if (!authorization || !authorization.startsWith('Bearer ')) {
         role = RoleTypes.Customer;
-        cannotCreteUser = true;
     } else {
         const token = tokentSpit(req.headers['authorization']);
         const result = await userFromToken(token);
         if (result) {
-            cannotCreteUser = VerificationHelper.cannotCreteUser(result, res);
-        } else {
-            role = roleId;
+            if (result.role.id == RoleTypes.Admin){
+                role = roleId;
+            } else {
+                role = RoleTypes.Customer;
+            }
         }
     }
-    if (cannotCreteUser && allRequiredParam && passwordCormimationGood && elementDoesNotExist && emailAlreadyExiest) {
-        try {
-            const user: User | IMessageResponse = await AuthController.signUp(firstname, lastname, email, password, role);
-            if ((user as IMessageResponse).Code) {
-                res.status((user as IMessageResponse).Code).json((user as IMessageResponse).Message);
-            } else {
-                res.status(201).json(user);
-            }
-        } catch (e) {
-            res.status(400).json(e);
+    try {
+        const user: User | IMessageResponse = await AuthController.signUp(firstname, lastname, email, password, role);
+        if ((user as IMessageResponse).Code) {
+            res.status((user as IMessageResponse).Code).json((user as IMessageResponse).Message);
+        } else {
+            res.status(201).json(user);
         }
+    } catch (e) {
+        res.status(400).json(e);
     }
 });
 
