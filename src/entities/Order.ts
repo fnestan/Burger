@@ -1,4 +1,14 @@
-import {Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    JoinTable,
+    ManyToMany,
+    ManyToOne,
+    OneToMany,
+    OneToOne,
+    PrimaryGeneratedColumn
+} from "typeorm";
 import {User} from "./User";
 import {Menu} from "./Menu";
 import {ProductLine} from "./ProductLine";
@@ -17,11 +27,23 @@ export class Order {
     @Column()
     orderNum: number;
 
-    @OneToOne(type => User, {nullable: true})
+    @Column()
+    ispaid: boolean;
+
+    @Column()
+    isReady: boolean;
+
+    @Column()
+    isPick: boolean;
+
+    @Column()
+    dateOrder: Date;
+
+    @ManyToOne(type => User, {nullable: true, eager: true})
     @JoinColumn()
     inChargeOfOrder: User;
 
-    @OneToOne(type => User, {nullable: true})
+    @OneToOne(type => User, {nullable: true, eager: true})
     @JoinColumn()
     orderCustomer: User;
 
@@ -31,7 +53,7 @@ export class Order {
 
     @OneToMany(type => ProductLineOrder, productLineOrder => productLineOrder.order, {nullable: true, eager: true})
     @JoinTable()
-    productLineOrders : ProductLineOrder[];
+    productLineOrders: ProductLineOrder[];
 
 
 }

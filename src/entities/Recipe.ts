@@ -15,13 +15,13 @@ export class Recipe {
     @Column()
     removable: boolean;
 
-    @ManyToOne(type => Unit)
+    @ManyToOne(type => Unit, {eager: true})
     unit: Unit;
 
     @ManyToOne(type => ProductLine, line => line.recipes)
     productLine: ProductLine;
 
-    @ManyToOne(type => Ingredient)
+    @ManyToOne(type => Ingredient, {eager: true})
     ingredient: Ingredient
 
 

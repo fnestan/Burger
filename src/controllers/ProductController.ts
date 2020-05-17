@@ -42,4 +42,7 @@ export class ProductController {
         }
     }
 
+    static async getAllProduct() {
+        return getRepository(Product).find();
+    }
 }

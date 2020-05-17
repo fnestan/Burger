@@ -1,5 +1,5 @@
 import {Product} from "../entities/Product";
-import {getRepository} from "typeorm";
+import {createQueryBuilder, getRepository} from "typeorm";
 import {ProductLine} from "../entities/ProductLine";
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
@@ -43,5 +43,21 @@ export class ProductLineController {
                 Message: e.toString()
             }
         }
+    }
+
+    static async getAllProductLines(): Promise<ProductLine[]> {
+        const pl = await getRepository(ProductLine).find();
+        for (let i = 0; i < pl.length; i++) {
+            let id = pl[i].id;
+            const prd = await createQueryBuilder('Product')
+                .leftJoinAndSelect(
+                    'Product.productLines',
+                    'productLines')
+                .where('productLines.id = :id', {id})
+                .getOne();
+            (prd as Product).productLines = [];
+            pl[i].product = prd;
+        }
+        return pl;
     }
 }

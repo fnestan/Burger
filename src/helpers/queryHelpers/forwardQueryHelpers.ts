@@ -5,10 +5,10 @@ import {Menu} from "../../entities/Menu";
 import {Forward} from "../../entities/Forward";
 
 export const forwardFromProductLineId = async (productLineId: number) => {
-    const productLine = await getRepository(ProductLine).findOne({id: productLineId})
+    const productLine = await getRepository(ProductLine).findOne({id: productLineId});
     return getRepository(Forward).findOne({
         where: {
-            productLine: productLine
+            prductline: productLine
         }
     });
 };

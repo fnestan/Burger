@@ -6,6 +6,17 @@ import {VerificationHelper} from "../helpers/verficationHelper/verificationHelpe
 import {IMessageResponse} from "../interfaces/IMessageResponse";
 
 const router = Router();
+/**
+ *
+ */
+router.get('/', AdminMiddleware.isAdmin(), async (req: Request, res: Response) => {
+    try {
+        const pl = await ProductLineController.getAllProductLines();
+        res.status(200).json(pl);
+    }catch (e) {
+        console.log(e);
+    }
+});
 
 /**
  * @api {post} /lines/ Request for create productLines
@@ -24,13 +35,15 @@ const router = Router();
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {desc_size, price, orderable, productId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+productId, res, "Product");
-    VerificationHelper.allRequiredParam(desc_size, +price, orderable, +productId);
-    try {
-        const productLine = await ProductLineController.createProductLine(desc_size, +price, orderable, +productId);
-        res.status(201).json(productLine);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+productId, res, "Product");
+    const allRequiredParam = VerificationHelper.allRequiredParam(desc_size, +price, orderable, +productId);
+    if (elementDoesNotExist && allRequiredParam) {
+        try {
+            const productLine = await ProductLineController.createProductLine(desc_size, +price, orderable, +productId);
+            res.status(201).json(productLine);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -51,14 +64,16 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {desc_size, price, orderable, productId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+productId, res, "Product");
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
-    VerificationHelper.allRequiredParam(desc_size, +price, orderable, +productId);
-    try {
-        const productLine = await ProductLineController.updateProductLine(+req.params.id, desc_size, price, orderable, productId);
-        res.status(200).json(productLine);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExistOnProduct = await VerificationHelper.elementDoesNotExist(+productId, res, "Product");
+    const elementDoesNotExistOnProductLine = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
+    const allRequiredParam = VerificationHelper.allRequiredParam(desc_size, +price, orderable, +productId);
+    if (elementDoesNotExistOnProduct && elementDoesNotExistOnProductLine && allRequiredParam) {
+        try {
+            const productLine = await ProductLineController.updateProductLine(+req.params.id, desc_size, price, orderable, productId);
+            res.status(200).json(productLine);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -72,12 +87,14 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
-    try {
-        const productLine: IMessageResponse = await ProductLineController.deleteProductLine(+req.params.id);
-        res.status(productLine.Code).json(productLine.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "ProductLine");
+    if (elementDoesNotExist) {
+        try {
+            const productLine: IMessageResponse = await ProductLineController.deleteProductLine(+req.params.id);
+            res.status(productLine.Code).json(productLine.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 export default router;

@@ -25,6 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
             isAdmin = true;
         }
     }
+
     try {
         const refTypes: RefTypeProduct[] = await TypesController.getAllRefTypeProduct(isAdmin);
         res.status(200).json(refTypes);
@@ -46,12 +47,14 @@ router.get('/', async (req: Request, res: Response) => {
  * @apiError  {string} unauthorize
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.label);
-    try {
-        const refTypes = await TypesController.createRefTypeProduct(req.body.label);
-        res.status(201).json(refTypes);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequiredParam = VerificationHelper.allRequiredParam(req.body.label);
+    if (allRequiredParam) {
+        try {
+            const refTypes = await TypesController.createRefTypeProduct(req.body.label);
+            res.status(201).json(refTypes);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -68,13 +71,15 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  * @apiError  {string} unauthorize
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    VerificationHelper.allRequiredParam(req.body.label);
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "RefTypeProduct");
-    try {
-        const refTypes = await TypesController.updateRefTypeProduct(+req.params.id, req.body.label);
-        res.status(200).json(refTypes);
-    } catch (e) {
-        res.status(400).json(e);
+    const allRequiredParam = VerificationHelper.allRequiredParam(req.body.label);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "RefTypeProduct");
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const refTypes = await TypesController.updateRefTypeProduct(+req.params.id, req.body.label);
+            res.status(200).json(refTypes);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
@@ -89,14 +94,16 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiError {String} unautorised
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "RefTypeProduct");
-    const refTypes: IMessageResponse = await TypesController.deleteRefTypeProduct(+req.params.id);
-    res.status(refTypes.Code).json(refTypes.Message)
-    try {
-        const refTypes = await TypesController.createRefTypeProduct(req.body.label);
-        res.status(201).json(refTypes);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "RefTypeProduct");
+    if (elementDoesNotExist) {
+        const refTypes: IMessageResponse = await TypesController.deleteRefTypeProduct(+req.params.id);
+        res.status(refTypes.Code).json(refTypes.Message)
+        try {
+            const refTypes = await TypesController.createRefTypeProduct(req.body.label);
+            res.status(201).json(refTypes);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 

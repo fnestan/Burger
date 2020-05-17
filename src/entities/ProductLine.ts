@@ -1,8 +1,9 @@
-import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Product} from "./Product";
 import {Recipe} from "./Recipe";
-import {MenuOrder} from "./MenuOrder";
 import {ProductLineOrder} from "./ProductLineOrder";
+import {Forward} from "./Forward";
+import {Discount} from "./Discount";
 
 @Entity()
 export class ProductLine {
@@ -21,11 +22,17 @@ export class ProductLine {
 
 
     @ManyToOne(type => Product, product => product.productLines, {onDelete: 'CASCADE', lazy: true})
-    product: Product;
+    product: unknown;
 
     @OneToMany(type => Recipe, recipe => recipe.productLine, {eager: true})
     recipes: Recipe[];
 
     @OneToMany(type => ProductLineOrder, ProductLineOrder => ProductLineOrder.productLine)
     ProductLinesOrders: ProductLineOrder[];
+
+    @OneToOne(type => Forward, forward => forward.prductline, {onDelete: "CASCADE"})
+    forward: Forward;
+
+    @OneToOne(type => Discount, discount => discount.productLine, {onDelete: "CASCADE"})
+    discount: Discount;
 }

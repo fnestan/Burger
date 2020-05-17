@@ -12,7 +12,7 @@ export class Discount {
     @JoinColumn()
     menu: Menu;
 
-    @OneToOne(type => ProductLine, {eager: true, nullable: true})
+    @OneToOne(type => ProductLine, line => line.discount, {eager: true, nullable: true, onDelete: "CASCADE"})
     @JoinColumn()
     productLine: ProductLine;
 

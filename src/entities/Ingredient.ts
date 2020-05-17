@@ -1,6 +1,4 @@
-import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {ProductLine} from "./ProductLine";
-import {Recipe} from "./Recipe";
+import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity()
 export class Ingredient {

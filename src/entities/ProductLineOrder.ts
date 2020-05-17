@@ -15,7 +15,7 @@ export class ProductLineOrder {
     @Column({type: "float"})
     price: number;
 
-    @ManyToOne(type => ProductLine, productLine => productLine.ProductLinesOrders)
+    @ManyToOne(type => ProductLine, productLine => productLine.ProductLinesOrders ,{eager:true})
     productLine: ProductLine;
 
     @Column()

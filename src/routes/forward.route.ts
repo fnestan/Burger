@@ -38,32 +38,39 @@ router.get('/', async (req: Request, res: Response) => {
  */
 router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
     const {menuId, productLineId, description} = req.body;
+    let allRequiredParam, elementDoesNotExist;
     if (+req.body.menuId && +req.body.productLineId) {
         res.status(400).json("Vous ne pouvez pas appliquer une mis en avant sur un menu et un produit")
         return;
     }
     if (menuId) {
-        VerificationHelper.allRequiredParam(menuId, description, res);
-        await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
-        await VerificationHelper.forwardExistOnMenu(menuId, res);
+        allRequiredParam = VerificationHelper.allRequiredParam(menuId, description, res);
+        elementDoesNotExist = await VerificationHelper.elementDoesNotExist(menuId, res, "Menu");
+        const forwardExistOnMenu = await VerificationHelper.forwardExistOnMenu(menuId, res);
+        if (forwardExistOnMenu) {
+            return;
+        }
     }
     if (productLineId) {
-        VerificationHelper.allRequiredParam(productLineId, description, res);
-        await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
-        await VerificationHelper.forwardExistOnProductLine(productLineId, res);
+        allRequiredParam = VerificationHelper.allRequiredParam(productLineId, description, res);
+        elementDoesNotExist = await VerificationHelper.elementDoesNotExist(productLineId, res, "ProductLine");
+        const forwardExistOnProductLine = await VerificationHelper.forwardExistOnProductLine(productLineId, res);
+        if (forwardExistOnProductLine) {
+            return;
+        }
     }
     if (!menuId && !productLineId) {
         res.status(400).json("Vous devez choisir un menu ou une ligne de produit");
         return;
     }
-    try {
-        const forward = await ForwardController.createForward(req.body.description, +req.body.menuId, +req.body.productLineId);
-        res.status(201).json(forward);
-    } catch (e) {
-        res.status(400).json(e);
+    if (allRequiredParam && elementDoesNotExist) {
+        try {
+            const forward = await ForwardController.createForward(req.body.description, +req.body.menuId, +req.body.productLineId);
+            res.status(201).json(forward);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
-
-
 });
 
 /**
@@ -79,13 +86,16 @@ router.post('/', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Req
  * @apiError  {string} unauthorize
  */
 router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Forward");
-    try {
-        const forward = await ForwardController.updateForward(+req.params.id, req.body.description);
-        res.status(200).json(forward);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Forward");
+    if (elementDoesNotExist) {
+        try {
+            const forward = await ForwardController.updateForward(+req.params.id, req.body.description);
+            res.status(200).json(forward);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 /**
@@ -98,13 +108,16 @@ router.put('/:id', [bodyParser.json(), AdminMiddleware.isAdmin()], async (req: R
  * @apiSuccess {string} return success
  */
 router.delete('/:id', [AdminMiddleware.isAdmin()], async (req: Request, res: Response) => {
-    await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Forward");
-    try {
-        const forward = await ForwardController.deleteForward(+req.params.id);
-        res.status(forward.Code).json(forward.Message);
-    } catch (e) {
-        res.status(400).json(e);
+    const elementDoesNotExist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, "Forward");
+    if (elementDoesNotExist) {
+        try {
+            const forward = await ForwardController.deleteForward(+req.params.id);
+            res.status(forward.Code).json(forward.Message);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
+
 });
 
 export default router;

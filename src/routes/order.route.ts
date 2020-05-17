@@ -19,17 +19,17 @@ const router = Router();
  * @apiSuccess {orders} return order
  * @apiError  {string} unauthorize
  */
-router.put('/:orderId', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder()], async (req: Request, res: Response) => {
-    const {userId} = req.body;
-    await VerificationHelper.elementDoesNotExist(+userId, res, "User");
-    await VerificationHelper.elementDoesNotExist(+req.params.orderId, res, "Order");
-    try {
-        const order = await OrderController.setResponsibleOfOrder(+req.params.orderId, +userId);
-        res.status(201).json(order);
-    } catch (e) {
-        res.status(400).json(e);
+router.get('/take/:orderId',  AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    const authorization = req.headers['authorization'].split(" ")[1];
+    const elementDoesNotExistOrder = await VerificationHelper.elementDoesNotExist(+req.params.orderId, res, "Order");
+    if (elementDoesNotExistOrder) {
+        try {
+            const order = await OrderController.setResponsibleOfOrder(+req.params.orderId, authorization);
+            res.status(200).json(order);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
-
 });
 /**
  * @api {post} /orders/ Request for create order
@@ -59,14 +59,30 @@ router.put('/:orderId', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder
  *
  * @apiSuccess {Ingredient} return ingredient
  */
-router.post('/', [bodyParser.json()], async (req: Request, res: Response) => {
+router.post('/create', [bodyParser.json()], async (req: Request, res: Response) => {
     const {orderCustomerId, menuIds, productLineIds} = req.body;
-    try {
+ try {
         const order = await OrderController.createOrder(+orderCustomerId, menuIds, productLineIds);
         res.status(201).json(order);
     } catch (e) {
+        console.log(e)
         res.status(400).json(e);
     }
+});
+
+router.get('/ready/:id', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    const Exist = await VerificationHelper.elementDoesNotExist(+req.params.id, res, 'Order');
+    if (Exist) {
+        const authorization = req.headers['authorization'].split(" ")[1];
+        try {
+            const order = await OrderController.orderIsReady(authorization, +req.params.id);
+            res.status(200).json(order);
+        } catch (e) {
+            console.log(e);
+            res.status(400).json(e);
+        }
+    }
+
 });
 
 /**
@@ -83,9 +99,76 @@ router.get('/', [bodyParser.json(), AdminMiddleware.isLogged()], async (req: Req
     const token = tokentSpit(req.headers.authorization);
     try {
         const orders = await OrderController.getCustomerOrders(token);
-        res.status(201).json(orders);
+        res.status(200).json(orders);
     } catch (e) {
         res.status(400).json(e);
+    }
+});
+
+// mes commande a traitee
+router.get('/myOrders', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    const token = tokentSpit(req.headers.authorization);
+    console.log('myOrders')
+    try {
+        const orders = await OrderController.getMyOrderToTreated(token);
+        res.status(200).json(orders);
+    } catch (e) {
+        console.log(e)
+        res.status(400).json(e);
+    }
+});
+
+// les commande non prise en charge
+router.get('/nonTreated', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    const token = tokentSpit(req.headers.authorization);
+    try {
+        const orders = await OrderController.getNonChargerOrders();
+        res.status(200).json(orders);
+    } catch (e) {
+        res.status(400).json(e);
+    }
+});
+
+router.get('/nonPaid', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder()], async (req: Request, res: Response) => {
+    try {
+        const orders = await OrderController.getNonPaidOrders();
+        res.status(200).json(orders);
+    } catch (e) {
+        console.log(e);
+        res.status(400).json(e);
+    }
+});
+
+
+router.get('/readyOrders', [bodyParser.json(), AdminMiddleware.canTakeChargeOfOrder()], async (req: Request, res: Response) => {
+    const token = tokentSpit(req.headers.authorization);
+    try {
+        const orders = await OrderController.getReadyOrders();
+        res.status(200).json(orders);
+    } catch (e) {
+        res.status(400).json(e);
+    }
+});
+
+router.get('/picked/:id', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    if (await VerificationHelper.elementDoesNotExist(+req.params.id, res, 'Order')) {
+        try {
+            const order = await OrderController.orderIsPick(+req.params.id);
+            res.status(200).json(order);
+        } catch (e) {
+            res.status(400).json(e);
+        }
+    }
+});
+
+router.get('/paidOrder/:id', AdminMiddleware.canTakeChargeOfOrder(), async (req: Request, res: Response) => {
+    if (await VerificationHelper.elementDoesNotExist(+req.params.id, res, 'Order')) {
+        try {
+            const order = await OrderController.orderIsPaid(+req.params.id);
+            res.status(200).json(order);
+        } catch (e) {
+            res.status(400).json(e);
+        }
     }
 });
 
